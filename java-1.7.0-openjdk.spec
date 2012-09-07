@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}%{?dist}.2
+Release: %{icedtea_version}%{?dist}.3
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -232,7 +232,7 @@ Source12: remove-intree-libraries.sh
 
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
 # hg tag: icedtea-2.1.1
-Source100:  openjdk-icedtea-2.1.1.tar.gz
+Source100:  openjdk-icedtea-2.1.2.tar.gz
 
 # RPM/distribution specific patches
 
@@ -1444,6 +1444,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Thu Sep 7 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.1.fc19.3
+- Not-jit-archs source tarball updated to openjdk-icedtea-2.1.2.tar.gz
+
 * Thu Aug 30 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.1.fc19.2
 - Updated to IcedTea-Forest 2.3.1
 - Resolves rhbz#RH852051, CVE-2012-4681: Reintroduce PackageAccessible checks 
