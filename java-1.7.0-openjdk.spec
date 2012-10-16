@@ -9,7 +9,7 @@
 # If runtests is 0 test suites will not be run.
 %global runtests 0
 
-%global icedtea_version 2.3.1
+%global icedtea_version 2.3.3
 %global hg_tag icedtea-{icedtea_version}
 
 %global accessmajorver 1.23
@@ -110,7 +110,7 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        6
+%global buildver        9
 # Keep priority on 5digits in case buildver>9
 %global priority        1700%{buildver}
 %global javaver         1.7.0
@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}%{?dist}.3
+Release: %{icedtea_version}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -231,8 +231,8 @@ Source12: remove-intree-libraries.sh
 # base (icedtea-2.2.1 tag)
 
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
-# hg tag: icedtea-2.1.1
-Source100:  openjdk-icedtea-2.1.2.tar.gz
+# hg tag: icedtea-2.1.3
+Source100:  openjdk-icedtea-2.1.3.tar.gz
 
 # RPM/distribution specific patches
 
@@ -918,6 +918,8 @@ make \
 
 popd >& /dev/null
 
+chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
+
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
 # Build pulseaudio and install it to JDK build location
@@ -1444,6 +1446,14 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Tue Oct 16 2012 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.3.fc19
+- Updated to IcedTea7-forest 2.3.3 primary arches
+- Updated to IcedTea7-forest 2.1.3 for secondary arches
+- Change permission of sa-jdi.jar to 644 (upstream for future)
+- Resolves rhbz#s 856124, 865346, 865348, 865350, 865352, 865354, 865357,
+  865359, 865363, 865365, 865370, 865428, 865471, 865434, 865511, 865514,
+  865519, 865531, 865541, 865568
+
 * Thu Sep 7 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.1.fc19.3
 - Not-jit-archs source tarball updated to openjdk-icedtea-2.1.2.tar.gz
 
