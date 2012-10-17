@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}%{?dist}
+Release: %{icedtea_version}%{?dist}.1
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -918,8 +918,6 @@ make \
 
 popd >& /dev/null
 
-chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
-
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
 # Build pulseaudio and install it to JDK build location
@@ -1446,6 +1444,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Wed Oct 17 2012 Dan Horák <dan[at]danny.cz> - 1.7.0.9-2.3.3.fc19.1
+- drop the chmod sa-jdi.jar, it's not needed and works only on jit_arches
+
 * Tue Oct 16 2012 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.3.fc19
 - Updated to IcedTea7-forest 2.3.3 primary arches
 - Updated to IcedTea7-forest 2.1.3 for secondary arches
