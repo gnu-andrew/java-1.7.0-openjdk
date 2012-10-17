@@ -918,6 +918,10 @@ make \
 
 popd >& /dev/null
 
+%ifarch %{jit_arches}
+chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
+%endif
+
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
 # Build pulseaudio and install it to JDK build location
@@ -1445,7 +1449,7 @@ exit 0
 
 %changelog
 * Wed Oct 17 2012 Dan Horák <dan[at]danny.cz> - 1.7.0.9-2.3.3.fc19.1
-- drop the chmod sa-jdi.jar, it's not needed and works only on jit_arches
+- change the permission of sa-jdi.jar only on jit_arches
 
 * Tue Oct 16 2012 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.3.fc19
 - Updated to IcedTea7-forest 2.3.3 primary arches
