@@ -9,7 +9,7 @@
 # If runtests is 0 test suites will not be run.
 %global runtests 0
 
-%global icedtea_version 2.3.3
+%global icedtea_version 2.3.4
 %global hg_tag icedtea-{icedtea_version}
 
 %global accessmajorver 1.23
@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.2%{?dist}
+Release: %{icedtea_version}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1472,6 +1472,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Mon Jan 14 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.4.fc19
+- Updated to 2.3.4
+
 * Thu Dec 06 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.2.fc19.2
 - introduced tmp-patches source tarball 
 - added kerberos fix (see rhbz#871771)
