@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1244,11 +1244,13 @@ alternatives \
   --slave %{_bindir}/appletviewer appletviewer %{sdkbindir}/appletviewer \
   --slave %{_bindir}/apt apt %{sdkbindir}/apt \
   --slave %{_bindir}/extcheck extcheck %{sdkbindir}/extcheck \
+  --slave %{_bindir}/idlj idlj %{sdkbindir}/idlj \
   --slave %{_bindir}/jar jar %{sdkbindir}/jar \
   --slave %{_bindir}/jarsigner jarsigner %{sdkbindir}/jarsigner \
   --slave %{_bindir}/javadoc javadoc %{sdkbindir}/javadoc \
   --slave %{_bindir}/javah javah %{sdkbindir}/javah \
   --slave %{_bindir}/javap javap %{sdkbindir}/javap \
+  --slave %{_bindir}/jcmd jcmd %{sdkbindir}/jcmd \
   --slave %{_bindir}/jconsole jconsole %{sdkbindir}/jconsole \
   --slave %{_bindir}/jdb jdb %{sdkbindir}/jdb \
   --slave %{_bindir}/jhat jhat %{sdkbindir}/jhat \
@@ -1472,6 +1474,11 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Wed Jan 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.4.1.fc19
+- Added idlj slave to javac
+- Added jcmd slave to javac
+- Release incremented
+
 * Mon Jan 14 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.4.fc19
 - Updated to 2.3.4
 
