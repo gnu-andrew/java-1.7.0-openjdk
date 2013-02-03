@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.1%{?dist}.1
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -175,17 +175,18 @@ URL:      http://openjdk.java.net/
 #current release
 #REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.2
 #REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.3
-# hg clone $REPO/ openjdk -r %{hg_tag}
-# hg clone $REPO/corba/ openjdk/corba -r %{hg_tag}
-# hg clone $REPO/hotspot/ openjdk/hotspot -r %{hg_tag}
-# hg clone $REPO/jaxp/ openjdk/jaxp -r %{hg_tag}
-# hg clone $REPO/jaxws/ openjdk/jaxws -r %{hg_tag}
-# hg clone $REPO/jdk/ openjdk/jdk -r %{hg_tag}
-# hg clone $REPO/langtools/ openjdk/langtools -r %{hg_tag}
+# hg clone $REPO/ openjdk -r %{hg_tag}                     [8bd8e70d4a03]
+# hg clone $REPO/corba/ openjdk/corba -r %{hg_tag}         [5116fe321210]
+# hg clone $REPO/hotspot/ openjdk/hotspot -r %{hg_tag}     [f2b98ad97b3c]
+# hg clone $REPO/jaxp/ openjdk/jaxp -r %{hg_tag}           [91fcc41a0b4b]
+# hg clone $REPO/jaxws/ openjdk/jaxws -r %{hg_tag}         [7182233cc27e]
+# hg clone $REPO/jdk/ openjdk/jdk -r %{hg_tag}             [50e268c1fb1f]
+# hg clone $REPO/langtools/ openjdk/langtools -r %{hg_tag} [946195011b30]
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
 # DEPRECATED - find openjdk -name ".hgtags" -exec rm -rf '{}' \; - used for check of corect forest
 # tar czf openjdk-icedtea-%{icedtea_version}.tar.gz openjdk
-Source0:  openjdk-icedtea-%{icedtea_version}.tar.gz
+#Source0:  openjdk-icedtea-%{icedtea_version}.tar.gz
+Source0:  openjdk-icedtea-2.3.5pre.tar.gz
 
 # Gnome access bridge
 # Download-able from accessurl, md5 hash supported
@@ -1474,6 +1475,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Sun Feb 03 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.4.2.fc19
+- Bumped to 2.3.5pre (2.3.4 + Feb. 2013 CPU)
+
 * Fri Jan 18 2013 Adam Tkac <atkac redhat com> - 1:1.7.0.9-2.3.4.1.1
 - rebuild due to "jpeg8-ABI" feature drop
 
