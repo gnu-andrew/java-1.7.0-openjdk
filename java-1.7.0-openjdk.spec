@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}%{?dist}
+Release: %{icedtea_version}%{?dist}.1
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -424,6 +424,15 @@ Patch302: systemtap.patch
 # Rhino support
 Patch400: rhino-icedtea-2.1.1.patch
 
+# Temporary patches
+# Patches to reverse 2 2012-02-01 security update
+
+# Back out 6664509 which bnreaks custom log managers
+Patch1000: sec-2013-02-01-6664509.patch
+
+# Back out 7201064 which breaks TCK
+Patch1001: sec-2013-02-01-7201064.patch
+
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: alsa-lib-devel
@@ -674,6 +683,11 @@ for TP in $TMPPATCHES ; do
     exit 5;
   fi;
 done ;
+
+pushd openjdk/jdk/
+%patch1000 -p1 -R
+%patch1001 -p1 -R
+popd
 
 # If bootstrapping, apply additional patches
 %if %{gcjbootstrap}
@@ -1473,6 +1487,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Wed Feb 06 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.fc19.1
+- Backed out 6664509 and 7201064.patch which cause regressions
+
 * Sun Feb 03 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.fc19
 - Bumped to 2.3.5
 - Removed unnecessary GENSRC flag
