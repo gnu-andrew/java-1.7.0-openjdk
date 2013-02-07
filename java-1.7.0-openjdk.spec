@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}%{?dist}.1
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -425,10 +425,8 @@ Patch302: systemtap.patch
 Patch400: rhino-icedtea-2.1.1.patch
 
 # Temporary patches
-# Patches to reverse 2 2012-02-01 security update
-
-# Back out 6664509 which bnreaks custom log managers
-Patch1000: sec-2013-02-01-6664509.patch
+# Patch to fix regression caused by fix for 6664509
+Patch1000: sec-2013-02-01-8005615.patch
 
 # Back out 7201064 which breaks TCK
 Patch1001: sec-2013-02-01-7201064.patch
@@ -685,7 +683,7 @@ for TP in $TMPPATCHES ; do
 done ;
 
 pushd openjdk/jdk/
-%patch1000 -p1 -R
+%patch1000 -p1
 %patch1001 -p1 -R
 popd
 
@@ -1487,6 +1485,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Thu Feb 07 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.1.fc19
+- Added patch for 8005615 to fix regression caused by fix for 6664509
+
 * Wed Feb 06 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.fc19.1
 - Backed out 6664509 and 7201064.patch which cause regressions
 
