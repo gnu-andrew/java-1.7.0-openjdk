@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -426,10 +426,14 @@ Patch400: rhino-icedtea-2.1.1.patch
 
 # Temporary patches
 # Patch to fix regression caused by fix for 6664509
+# Upstreamed at http://icedtea.classpath.org/hg/release/icedtea7-forest-2.3/jdk/rev/272466e46b3f
 Patch1000: sec-2013-02-01-8005615.patch
+# synchronize the files fixed by the above patch with
+# http://cr.openjdk.java.net/~ewendeli/jdk7u13-cpu/
+Patch1001: sec-2013-02-01-8005615-sync_with_jdk7u.patch
 
 # Back out 7201064 which breaks TCK
-Patch1001: sec-2013-02-01-7201064.patch
+Patch1010: sec-2013-02-01-7201064.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -684,7 +688,8 @@ done ;
 
 pushd openjdk/jdk/
 %patch1000 -p1
-%patch1001 -p1 -R
+%patch1001 -p1
+%patch1010 -p1 -R
 popd
 
 # If bootstrapping, apply additional patches
@@ -1485,6 +1490,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Thu Feb 07 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.5.3.fc19
+- Sync logging fixes with upstream (icedtea7-forest and jdk7u)
+
 * Thu Feb 07 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.1.fc19
 - Added patch for 8005615 to fix regression caused by fix for 6664509
 
