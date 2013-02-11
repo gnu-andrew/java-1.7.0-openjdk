@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -247,8 +247,8 @@ Source13: tmp-patches-java-1.7.0-openjdk-f17.tar.gz
 # base (icedtea-2.2.1 tag)
 
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
-# hg tag: icedtea-2.1.3
-Source100:  openjdk-icedtea-2.1.3.tar.gz
+# hg tag: icedtea-2.1.5
+Source100:  openjdk-icedtea-2.1.5.tar.gz
 
 # RPM/distribution specific patches
 
@@ -1490,6 +1490,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Mon Feb 11 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.4.fc19
+- Updated secondary arch tarball to 2.1.5
+
 * Thu Feb 07 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.5.3.fc19
 - Sync logging fixes with upstream (icedtea7-forest and jdk7u)
 
