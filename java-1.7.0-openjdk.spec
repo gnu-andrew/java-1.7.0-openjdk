@@ -687,9 +687,11 @@ for TP in $TMPPATCHES ; do
 done ;
 
 pushd openjdk/jdk/
+%ifnarch %{jit_arches}
 %patch1000 -p1
 %patch1001 -p1
 %patch1010 -p1 -R
+%endif
 popd
 
 # If bootstrapping, apply additional patches
@@ -1492,6 +1494,7 @@ exit 0
 %changelog
 * Mon Feb 11 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.4.fc19
 - Updated secondary arch tarball to 2.1.5
+- Made Patch100* jit-arch specific-only (not needed for 2.1.5)
 
 * Thu Feb 07 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.5.3.fc19
 - Sync logging fixes with upstream (icedtea7-forest and jdk7u)
