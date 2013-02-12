@@ -687,7 +687,7 @@ for TP in $TMPPATCHES ; do
 done ;
 
 pushd openjdk/jdk/
-%ifnarch %{jit_arches}
+%ifarch %{jit_arches}
 %patch1000 -p1
 %patch1001 -p1
 %patch1010 -p1 -R
