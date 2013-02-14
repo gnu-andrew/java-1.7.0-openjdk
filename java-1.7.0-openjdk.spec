@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.5%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1492,6 +1492,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Thu Feb 14 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1.7.0.9-2.3.5.5.fc19
+- rebuild for ARM fix
+
 * Mon Feb 11 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.5.4.fc19
 - Updated secondary arch tarball to 2.1.5
 - Made Patch100* jit-arch specific-only (not needed for 2.1.5)
