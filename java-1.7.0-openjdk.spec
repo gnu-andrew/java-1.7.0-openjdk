@@ -9,7 +9,7 @@
 # If runtests is 0 test suites will not be run.
 %global runtests 0
 
-%global icedtea_version 2.3.5
+%global icedtea_version 2.3.6
 %global hg_tag icedtea-{icedtea_version}
 
 %global accessmajorver 1.23
@@ -153,7 +153,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.5%{?dist}
+Release: %{icedtea_version}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -424,17 +424,6 @@ Patch302: systemtap.patch
 # Rhino support
 Patch400: rhino-icedtea-2.1.1.patch
 
-# Temporary patches
-# Patch to fix regression caused by fix for 6664509
-# Upstreamed at http://icedtea.classpath.org/hg/release/icedtea7-forest-2.3/jdk/rev/272466e46b3f
-Patch1000: sec-2013-02-01-8005615.patch
-# synchronize the files fixed by the above patch with
-# http://cr.openjdk.java.net/~ewendeli/jdk7u13-cpu/
-Patch1001: sec-2013-02-01-8005615-sync_with_jdk7u.patch
-
-# Back out 7201064 which breaks TCK
-Patch1010: sec-2013-02-01-7201064.patch
-
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: alsa-lib-devel
@@ -685,14 +674,6 @@ for TP in $TMPPATCHES ; do
     exit 5;
   fi;
 done ;
-
-pushd openjdk/jdk/
-%ifarch %{jit_arches}
-%patch1000 -p1
-%patch1001 -p1
-%patch1010 -p1 -R
-%endif
-popd
 
 # If bootstrapping, apply additional patches
 %if %{gcjbootstrap}
@@ -1492,6 +1473,11 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Thu Feb 14 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.9-2.3.6.fc19
+- Updated to 2.3.6
+- Updated the 2.1.5 tarball
+- Removed upstreamed patches (Patch1000+)
+
 * Thu Feb 14 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1.7.0.9-2.3.5.5.fc19
 - rebuild for ARM fix
 
