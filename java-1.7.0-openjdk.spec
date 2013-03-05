@@ -6,7 +6,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.7
+%global icedtea_version 2.3.8
 %global hg_tag icedtea-{icedtea_version}
 
 %global accessmajorver 1.23
@@ -1416,6 +1416,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Mon Mar 4 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.8.fc19
+- Updated to icedtea7 2.3.8 (forest)
+
 * Fri Feb 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.7.fc19
 - Updated to 2.3.7 icedtea7 tarball
 - Updated the 2.1.6 icedtea7 tarballfor arm
