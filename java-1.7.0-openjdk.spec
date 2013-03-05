@@ -223,10 +223,6 @@ Source9: pulseaudio.tar.gz
 # Removed libraries that we link instead
 Source10: remove-intree-libraries.sh
 
-#This archive contains all temporal patches, which are or will be soon upstreamed,
-#but were needed asap in distribution. Those parches are then applied in loop
-Source11: tmp-patches-java-1.7.0-openjdk-f17.tar.gz
-
 # For primary arches, build latest and for secondary, use hs22
 # base (icedtea-2.2.1 tag)
 
@@ -581,7 +577,6 @@ The OpenJDK API documentation.
 
 %setup -q -c -n %{name} -T -a %{source_num}
 %setup -q -n %{name} -T -D -a 1
-%setup -q -n %{name} -T -D -a 11
 cp %{SOURCE2} .
 
 # OpenJDK patches
@@ -639,18 +634,6 @@ tar xzf %{SOURCE9}
 
 # Extract desktop files
 tar xzf %{SOURCE7}
-
-#apply all patches from tmp-patches
-TMPPATCHES=`ls tmp-patches/` ;
-for TP in $TMPPATCHES ; do
-  echo "using patch $TP" ;
-  patch -p1 < tmp-patches/$TP ;
-  r=$? ;
-  if [ "$r" != "0" ] ; then 
-    exit 5;
-  fi;
-done ;
-
 
 # If bootstrapping, apply additional patches
 %if %{gcjbootstrap}
@@ -1418,6 +1401,7 @@ exit 0
 %changelog
 * Mon Mar 4 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.8.fc19
 - Updated to icedtea7 2.3.8 (forest)
+- Removed upstreamed patches.
 
 * Fri Feb 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.7.fc19
 - Updated to 2.3.7 icedtea7 tarball
