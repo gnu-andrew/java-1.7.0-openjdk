@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.0%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -404,8 +404,12 @@ Patch302: systemtap.patch
 # Rhino support
 Patch400: rhino-icedtea-2.1.1.patch
 
+# partially upstreamed fix for zero's alloc
+Patch500: java-1.7.0-openjdk-fixZeroAllocFailure.patch
+
 BuildRequires: autoconf
 BuildRequires: automake
+BuildRequires: gcc-c++
 BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
 BuildRequires: desktop-file-utils
@@ -428,6 +432,8 @@ BuildRequires: libXinerama-devel
 BuildRequires: rhino
 BuildRequires: redhat-lsb
 BuildRequires: zip
+BuildRequires: fontconfig
+BuildRequires: xorg-x11-fonts-Type1
 %if %{gcjbootstrap}
 BuildRequires: java-1.5.0-gcj-devel
 %else
@@ -465,6 +471,8 @@ BuildRequires: systemtap-sdt-devel
 Requires: rhino
 Requires: lcms2
 Requires: libjpeg = 6b
+Requires: fontconfig
+Requires: xorg-x11-fonts-Type1
 # Require /etc/pki/java/cacerts.
 Requires: ca-certificates
 # Require jpackage-utils for ant.
@@ -721,6 +729,13 @@ patch -l -p0 < %{PATCH104}
 patch -l -p0 < %{PATCH105}
 %endif
 
+
+%ifnarch %{jit_arches}
+patch -l -p0 < %{PATCH500}
+%endif
+
+
+
 # Add a "-icedtea" tag to the version
 sed -i "s#BUILD_VARIANT_RELEASE)#BUILD_VARIANT_RELEASE)-icedtea#" openjdk/jdk/make/common/shared/Defs.gmk
 
@@ -932,6 +947,14 @@ popd
 
 # Copy tz.properties
 echo "sun.zoneinfo.dir=/usr/share/javazi" >> $JAVA_HOME/jre/lib/tz.properties
+
+#remove all fontconfig files. This change should be usptreamed soon
+rm %{buildoutputdir}/j2re-image/lib/fontconfig*.properties.src
+rm %{buildoutputdir}/j2re-image/lib/fontconfig*.bfc
+rm %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.properties.src
+rm %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.bfc
+rm %{buildoutputdir}/lib/fontconfig*.properties.src
+rm %{buildoutputdir}/lib/fontconfig*.bfc
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -1313,6 +1336,7 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/security/cacerts
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.policy
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.security
+%config(noreplace) %{_jvmdir}/%{jredir}/lib/logging.properties
 %{_datadir}/icons/hicolor/*x*/apps/java-%{javaver}.png
 %{_mandir}/man1/java-%{name}.1*
 %{_mandir}/man1/keytool-%{name}.1*
@@ -1323,8 +1347,9 @@ exit 0
 %{_mandir}/man1/servertool-%{name}.1*
 %{_mandir}/man1/tnameserv-%{name}.1*
 %{_mandir}/man1/unpack200-%{name}.1*
-%{_jvmdir}/%{jredir}/lib/security/nss.cfg
+%config(noreplace) %{_jvmdir}/%{jredir}/lib/security/nss.cfg
 %{_jvmdir}/%{jredir}/lib/audio/
+%attr(664, root, root) %ghost %{_jvmdir}/%{jrelnk}/lib/%{archinstall}/server/classes.jsa
 
 
 %files devel
@@ -1399,7 +1424,24 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
-* Mon Mar 4 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.8.fc19
+* Mon Mar 25 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.1.fc19
+- Bumped release
+- Added and applied patch500 java-1.7.0-openjdk-fixZeroAllocFailure.patch
+  - to fix not-jit arches build
+  - is already in upstreamed icedtea 2.1
+- Added gcc-c++ build dependence. Sometimes caused troubles during rpm -bb
+- Added (Build)Requires for fontconfig and xorg-x11-fonts-Type1
+  - see https://bugzilla.redhat.com/show_bug.cgi?id=721033 for details
+- Removed all fonconfig files. Fonts are now handled differently in JDK 
+  and those files are redundant. This is going to be usptreamed.
+  - see https://bugzilla.redhat.com/show_bug.cgi?id=902227 for details
+- logging.properties marked as config(noreplace)
+  - see https://bugzilla.redhat.com/show_bug.cgi?id=679180 for details
+- classes.jsa marked as ghost 
+  - see https://bugzilla.redhat.com/show_bug.cgi?id=918172 for details
+- nss.cfg was marked as config(noreplace) 
+
+* Mon Mar 04 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.8.fc19
 - Updated to icedtea7 2.3.8 (forest)
 - Removed upstreamed patches.
 
