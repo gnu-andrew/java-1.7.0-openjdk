@@ -1358,7 +1358,7 @@ exit 0
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/nss.cfg
 %{_jvmdir}/%{jredir}/lib/audio/
 %ifarch %{jit_arches}
-%attr(664, root, root) %ghost %{_jvmdir}/%{jrelnk}/lib/%{archinstall}/server/classes.jsa
+%attr(664, root, root) %ghost %{_jvmdir}/%{jredir}/lib/%{archinstall}/server/classes.jsa
 %endif
 
 
@@ -1436,7 +1436,7 @@ exit 0
 %changelog
 * Tue Mar 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.3.fc19
 - added manual deletion of classes.jsa
-- ghost classes.jsa restricted to jitarches
+- ghost classes.jsa restricted to jitarches and to full path
 - zlib in BuildReq restricted for  1.2.3-7 or higher
  - see https://bugzilla.redhat.com/show_bug.cgi?id=904231
 
