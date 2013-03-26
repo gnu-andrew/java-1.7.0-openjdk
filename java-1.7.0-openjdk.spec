@@ -1419,7 +1419,7 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
-* Mon Tue 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.2.fc19
+* Tue Mar 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.2.fc19
 - Removed a -icedtea tag from the version
   - package have less and less connections to icedtea7
 - Added link to nss as noreplace bug to previous changelog item
