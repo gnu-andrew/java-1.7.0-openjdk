@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.2%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -434,6 +434,7 @@ BuildRequires: redhat-lsb
 BuildRequires: zip
 BuildRequires: fontconfig
 BuildRequires: xorg-x11-fonts-Type1
+BuildRequires: zlib > 1.2.3-6
 %if %{gcjbootstrap}
 BuildRequires: java-1.5.0-gcj-devel
 %else
@@ -1168,6 +1169,18 @@ fi
 exit 0
 
 %postun
+%ifarch %{jit_arches}
+  if [ $1 -eq 0 ]
+  then
+    #see https://bugzilla.redhat.com/show_bug.cgi?id=918172
+    f="%{_jvmdir}/%{jrelnk}/lib/%{archinstall}/server/classes.jsa"
+    if [ -f "$f" ]
+    then
+      rm -rf "$f"
+    fi
+  fi
+%endif
+
 if [ $1 -eq 0 ]
 then
   alternatives --remove java %{jrebindir}/java
@@ -1344,7 +1357,9 @@ exit 0
 %{_mandir}/man1/unpack200-%{name}.1*
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/nss.cfg
 %{_jvmdir}/%{jredir}/lib/audio/
-%attr(664, root, root) %ghost %{_jvmdir}/%{jrelnk}/lib/%{archinstall}/server/classes.jsa
+%ifarch %{jit_arches}
+%attr(664, root, root) %ghost %{_jvmdir}/%{jredir}/lib/%{archinstall}/server/classes.jsa
+%endif
 
 
 %files devel
@@ -1419,6 +1434,12 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Tue Mar 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.3.fc20
+- added manual deletion of classes.jsa
+- ghost classes.jsa restricted to jitarches and to full path
+- zlib in BuildReq restricted for  1.2.3-7 or higher
+ - see https://bugzilla.redhat.com/show_bug.cgi?id=904231
+
 * Tue Mar 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.2.fc20
 - Removed a -icedtea tag from the version
   - package have less and less connections to icedtea7
