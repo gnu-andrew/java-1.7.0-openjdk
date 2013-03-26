@@ -106,7 +106,7 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        9
+%global buildver        17
 # Keep priority on 6digits in case buildver>9
 %global priority        17000%{buildver}
 %global javaver         1.7.0
@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -733,11 +733,6 @@ patch -l -p0 < %{PATCH105}
 %ifnarch %{jit_arches}
 patch -l -p0 < %{PATCH500}
 %endif
-
-
-
-# Add a "-icedtea" tag to the version
-sed -i "s#BUILD_VARIANT_RELEASE)#BUILD_VARIANT_RELEASE)-icedtea#" openjdk/jdk/make/common/shared/Defs.gmk
 
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
@@ -1424,6 +1419,11 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Mon Tue 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.2.fc20
+- Removed a -icedtea tag from the version
+  - package have less and less connections to icedtea7
+- Added link to nss as noreplace bug to previous changelog item
+
 * Mon Mar 25 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.1.fc20
 - Bumped release
 - Added and applied patch500 java-1.7.0-openjdk-fixZeroAllocFailure.patch
@@ -1440,6 +1440,7 @@ exit 0
 - classes.jsa marked as ghost 
   - see https://bugzilla.redhat.com/show_bug.cgi?id=918172 for details
 - nss.cfg was marked as config(noreplace) 
+  - see https://bugzilla.redhat.com/show_bug.cgi?id=913821 for details
 
 * Mon Mar 04 2013 Omair Majid <omajid@redhat.com> - 1.7.0.9-2.3.8.fc19
 - Updated to icedtea7 2.3.8 (forest)
