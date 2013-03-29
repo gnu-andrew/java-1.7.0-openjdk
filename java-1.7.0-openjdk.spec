@@ -9,8 +9,8 @@
 %global icedtea_version 2.3.8
 %global hg_tag icedtea-{icedtea_version}
 
-%global accessmajorver 1.23
-%global accessminorver 0
+%global accessmajorver 1.26
+%global accessminorver 2
 %global accessver %{accessmajorver}.%{accessminorver}
 %global accessurl http://ftp.gnome.org/pub/GNOME/sources/java-access-bridge/
 
@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1434,6 +1434,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Fri Mar 29 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.4.fc19
+- Updated to java-access-bridge-1.26.2.tar.bz2
+
 * Tue Mar 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.3.fc19
 - added manual deletion of classes.jsa
 - ghost classes.jsa restricted to jitarches and to full path
