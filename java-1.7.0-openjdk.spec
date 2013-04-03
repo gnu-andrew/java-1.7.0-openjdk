@@ -9,12 +9,6 @@
 %global icedtea_version 2.3.8
 %global hg_tag icedtea-{icedtea_version}
 
-%global accessmajorver 1.26
-%global accessminorver 2
-%global accessver %{accessmajorver}.%{accessminorver}
-%global accessurl http://ftp.gnome.org/pub/GNOME/sources/java-access-bridge/
-
-
 %global multilib_arches ppc64 sparc64 x86_64
 
 %global jit_arches %{ix86} x86_64 sparcv9 sparc64
@@ -149,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.5%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -180,10 +174,6 @@ URL:      http://openjdk.java.net/
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
 # tar czf openjdk-icedtea-%{icedtea_version}.tar.gz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}.tar.gz
-
-# Gnome access bridge
-# Download-able from accessurl, md5 hash supported
-Source1:  %{accessurl}%{accessmajorver}/java-access-bridge-%{accessver}.tar.bz2
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -236,7 +226,7 @@ Source100:  openjdk-icedtea-2.1.6.tar.gz
 Patch1:   java-1.7.0-openjdk-java-access-bridge-tck.patch
 
 # Adjust idlj compilation switches to match what system idlj supports
-Patch2:   java-1.7.0-openjdk-java-access-bridge-idlj.patch
+#Patch2:   java-1.7.0-openjdk-java-access-bridge-idlj.patch
 
 # Disable access to access-bridge packages by untrusted apps
 Patch3:   java-1.7.0-openjdk-java-access-bridge-security.patch
@@ -441,10 +431,8 @@ BuildRequires: java-1.5.0-gcj-devel
 BuildRequires: java-1.7.0-openjdk-devel
 %endif
 BuildRequires: fontconfig
-# Java Access Bridge for GNOME build requirements.
 BuildRequires: at-spi-devel
 BuildRequires: gawk
-BuildRequires: libbonobo-devel
 BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
 # PulseAudio build requirements.
@@ -585,7 +573,6 @@ The OpenJDK API documentation.
 %endif
 
 %setup -q -c -n %{name} -T -a %{source_num}
-%setup -q -n %{name} -T -D -a 1
 cp %{SOURCE2} .
 
 # OpenJDK patches
@@ -927,19 +914,20 @@ cp -pPRf build/pulse-java.jar $JAVA_HOME/jre/lib/ext/
 popd
 %endif
 
-# Build Java Access Bridge for GNOME.
-pushd java-access-bridge-%{accessver}
-  patch -l -p1 < %{PATCH1}
-  patch -l -p1 < %{PATCH2}
-  OLD_PATH=$PATH
-  export PATH=$JAVA_HOME/bin:$OLD_PATH
-  ./configure
-  make
-  export PATH=$OLD_PATH
-  cp -a bridge/accessibility.properties $JAVA_HOME/jre/lib
-  chmod 644 gnome-java-bridge.jar
-  cp -a gnome-java-bridge.jar $JAVA_HOME/jre/lib/ext
-popd
+# Create broken links which leads to possible java-atk-bridge and allow configuration
+  pushd $JAVA_HOME/jre/lib/%{archinstall}
+    ln -s %{syslibdir}/java-atk-wrapper/libatk-wrapper.so.0 libatk-wrapper.so
+  popd
+  pushd $JAVA_HOME/jre/lib/ext
+     ln -s %{syslibdir}/java-atk-wrapper/java-atk-wrapper.jar  java-atk-wrapper.jar
+     #chmod 644 java-atk-wrapper.jar?
+  popd
+  pushd $JAVA_HOME/jre/lib/
+    echo "#Config file to  enable java-atk-wrapper" > accessibility.properties
+    echo "" >> accessibility.properties
+    echo "assistive_technologies=org.GNOME.Accessibility.AtkWrapper" >> accessibility.properties
+    echo "" >> accessibility.properties
+  popd
 
 # Copy tz.properties
 echo "sun.zoneinfo.dir=/usr/share/javazi" >> $JAVA_HOME/jre/lib/tz.properties
@@ -1169,18 +1157,6 @@ fi
 exit 0
 
 %postun
-%ifarch %{jit_arches}
-  if [ $1 -eq 0 ]
-  then
-    #see https://bugzilla.redhat.com/show_bug.cgi?id=918172
-    f="%{_jvmdir}/%{jrelnk}/lib/%{archinstall}/server/classes.jsa"
-    if [ -f "$f" ]
-    then
-      rm -rf "$f"
-    fi
-  fi
-%endif
-
 if [ $1 -eq 0 ]
 then
   alternatives --remove java %{jrebindir}/java
@@ -1334,7 +1310,6 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/ASSEMBLY_EXCEPTION
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 %doc %{buildoutputdir}/j2sdk-image/jre/THIRD_PARTY_README
-
 %dir %{_jvmdir}/%{sdkdir}
 %{_jvmdir}/%{jrelnk}
 %{_jvmjardir}/%{jrelnk}
@@ -1434,7 +1409,16 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
-* Fri Mar 29 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.4.fc20
+* Wed Apr 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.5.fc20
+- removed redundant rm of classes.jsa, ghost is handling it correctly
+- removed access-gnome-bridge as deprecated technology.
+ - replaced by linking to optional, install-able,  package java-atk-wrapper
+ - all patches kept as valid in same way as for gnome bridge
+ - question is java-1.7.0-openjdk-java-access-bridge-idlj if still valid
+- commented out mysterious patch2   java-1.7.0-openjdk-java-access-bridge-idlj.patch
+ - candidate for deletation
+
+* Fri Mar 29 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.4.fc19
 - Updated to java-access-bridge-1.26.2.tar.bz2
 
 * Tue Mar 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.3.fc20
