@@ -143,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.5%{?dist}
+Release: %{icedtea_version}.6%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -225,9 +225,6 @@ Source100:  openjdk-icedtea-2.1.6.tar.gz
 # Allow TCK to pass with access bridge wired in
 Patch1:   java-1.7.0-openjdk-java-access-bridge-tck.patch
 
-# Adjust idlj compilation switches to match what system idlj supports
-#Patch2:   java-1.7.0-openjdk-java-access-bridge-idlj.patch
-
 # Disable access to access-bridge packages by untrusted apps
 Patch3:   java-1.7.0-openjdk-java-access-bridge-security.patch
 
@@ -259,6 +256,9 @@ Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
+
+# allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
+Patch107: abrt_friendly_hs_log_jdk7.patch
 
 #
 # Bootstrap patches (code with this is never shipped)
@@ -710,6 +710,7 @@ patch -l -p0 < %{PATCH103}
 %endif
 
 patch -l -p0 < %{PATCH106}
+patch -l -p0 < %{PATCH107}
 
 %ifarch ppc ppc64
 # PPC fixes
@@ -1409,6 +1410,10 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Wed Apr 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.6.fc20
+- added patch107 abrt_friendly_hs_log_jdk7.patch
+- removed patch2   java-1.7.0-openjdk-java-access-bridge-idlj.patch
+
 * Wed Apr 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.5.fc20
 - removed redundant rm of classes.jsa, ghost is handling it correctly
 - removed access-gnome-bridge as deprecated technology.
