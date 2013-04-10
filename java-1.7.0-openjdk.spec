@@ -102,7 +102,7 @@
 %global origin          openjdk
 %global buildver        17
 # Keep priority on 6digits in case buildver>9
-%global priority        17000%{buildver}
+%global priority        1700%{buildver}
 %global javaver         1.7.0
 
 # Standard JPackage directories and symbolic links.
@@ -1410,6 +1410,10 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Wed Apr 10 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.6.fc19
+- fixed priority (one zero deleted)
+- unapplied patch2
+
 * Wed Apr 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.6.fc19
 - added patch107 abrt_friendly_hs_log_jdk7.patch
 - removed patch2   java-1.7.0-openjdk-java-access-bridge-idlj.patch
