@@ -6,7 +6,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.8
+%global icedtea_version 2.3.9
 %global hg_tag icedtea-{icedtea_version}
 
 %global multilib_arches ppc64 sparc64 x86_64
@@ -100,7 +100,7 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        17
+%global buildver        19
 # Keep priority on 6digits in case buildver>9
 %global priority        1700%{buildver}
 %global javaver         1.7.0
@@ -143,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.6%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1335,6 +1335,7 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/audio/
 %ifarch %{jit_arches}
 %attr(664, root, root) %ghost %{_jvmdir}/%{jredir}/lib/%{archinstall}/server/classes.jsa
+%attr(664, root, root) %ghost %{_jvmdir}/%{jredir}/lib/%{archinstall}/client/classes.jsa
 %endif
 
 
@@ -1410,6 +1411,15 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Tue Apr 16 2013 Jiri Vanek <jvanek@redhat.com - 1.7.0.19-2.3.9.1.fc119
+- updated to IcedTea  2.3.9 with latest security patches
+  - updated to updated IcedTea  2.3.9 with fix to one of security fixes
+  -  fixed font glyph offset
+- added client to ghosted classes.jsa
+- buildver sync to b19
+- rewritten java-1.7.0-openjdk-java-access-bridge-security.patch
+
+
 * Wed Apr 10 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.6.fc19
 - fixed priority (one zero deleted)
 - unapplied patch2
