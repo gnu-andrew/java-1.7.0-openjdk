@@ -143,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -217,8 +217,8 @@ Source10: remove-intree-libraries.sh
 # base (icedtea-2.2.1 tag)
 
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
-# hg tag: icedtea-2.1.5
-Source100:  openjdk-icedtea-2.1.6.tar.gz
+# hg tag: icedtea-2.1.8
+Source100:  openjdk-icedtea-2.1.8.tar.gz
 
 # RPM/distribution specific patches
 
@@ -1411,7 +1411,10 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
-* Tue Apr 16 2013 Jiri Vanek <jvanek@redhat.com - 1.7.0.19-2.3.9.1.fc119
+* Thu Apr 18 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.2.fc19
+- Updated secondary arches to 2.1.8
+
+* Tue Apr 16 2013 Jiri Vanek <jvanek@redhat.com - 1.7.0.19-2.3.9.1.fc19
 - updated to IcedTea  2.3.9 with latest security patches
   - updated to updated IcedTea  2.3.9 with fix to one of security fixes
   -  fixed font glyph offset
