@@ -394,9 +394,6 @@ Patch302: systemtap.patch
 # Rhino support
 Patch400: rhino-icedtea-2.1.1.patch
 
-# partially upstreamed fix for zero's alloc
-Patch500: java-1.7.0-openjdk-fixZeroAllocFailure.patch
-
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: gcc-c++
@@ -716,11 +713,6 @@ patch -l -p0 < %{PATCH107}
 # PPC fixes
 patch -l -p0 < %{PATCH104}
 patch -l -p0 < %{PATCH105}
-%endif
-
-
-%ifnarch %{jit_arches}
-patch -l -p0 < %{PATCH500}
 %endif
 
 # Build the re-written rhino jar
@@ -1413,6 +1405,7 @@ exit 0
 %changelog
 * Thu Apr 18 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.2.fc19
 - Updated secondary arches to 2.1.8
+- Removed upstreamed Zero allocation patch
 
 * Tue Apr 16 2013 Jiri Vanek <jvanek@redhat.com - 1.7.0.19-2.3.9.1.fc19
 - updated to IcedTea  2.3.9 with latest security patches
