@@ -143,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.2%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1403,6 +1403,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Fri Apr 19 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.3.fc19
+- Updated 2.1.8 tarball
+
 * Thu Apr 18 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.2.fc19
 - Updated secondary arches to 2.1.8
 - Removed upstreamed Zero allocation patch
