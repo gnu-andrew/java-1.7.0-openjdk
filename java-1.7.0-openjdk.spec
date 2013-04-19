@@ -926,12 +926,12 @@ popd
 echo "sun.zoneinfo.dir=/usr/share/javazi" >> $JAVA_HOME/jre/lib/tz.properties
 
 #remove all fontconfig files. This change should be usptreamed soon
-rm %{buildoutputdir}/j2re-image/lib/fontconfig*.properties.src
-rm %{buildoutputdir}/j2re-image/lib/fontconfig*.bfc
-rm %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.properties.src
-rm %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.bfc
-rm %{buildoutputdir}/lib/fontconfig*.properties.src
-rm %{buildoutputdir}/lib/fontconfig*.bfc
+rm -f %{buildoutputdir}/j2re-image/lib/fontconfig*.properties.src
+rm -f %{buildoutputdir}/j2re-image/lib/fontconfig*.bfc
+rm -f %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.properties.src
+rm -f %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.bfc
+rm -f %{buildoutputdir}/lib/fontconfig*.properties.src
+rm -f %{buildoutputdir}/lib/fontconfig*.bfc
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -1405,6 +1405,7 @@ exit 0
 %changelog
 * Fri Apr 19 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.3.fc19
 - Updated 2.1.8 tarball
+- Forcibly remove bfc files
 
 * Thu Apr 18 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.2.fc19
 - Updated secondary arches to 2.1.8
