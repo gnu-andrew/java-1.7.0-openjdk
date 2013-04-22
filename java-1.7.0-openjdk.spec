@@ -138,7 +138,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.5%{?dist}
+Release: %{icedtea_version}.6%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -431,14 +431,8 @@ Requires: java-atk-wrapper
 Requires: %{name} = %{epoch}:%{version}-%{release}
 BuildArch: noarch
 
-
-# Standard JPackage javadoc provides.
-Provides: java-accessibility = %{epoch}:%{version}-%{release}
-Provides: java-%{javaver}-accessibility = %{epoch}:%{version}-%{release}
-
 %description accessibility
-This package contains several symlinks to java-atk-wrapper.
-Those links made java transparent for (gnome) accessibility software, so tools like screen reader or so will work for java applications.
+Enables accessibility support in OpenJDK by using java-at-wrapper. This allows compatible at-spi2 based accessibility programs to work for AWT and Swing-based programs.
 Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is still in phase of tuning to be working with accessibility features.
 Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
 
@@ -1150,6 +1144,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.6.fc19
+- cosmetic changes to  accessibility subpackage
+ - removed all provides
+ - changed description a bit
+
 * Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.5.fc19
 - created accessibility subpackage
  - all intentionally broken java-ark-wrapper symlinks placed here
