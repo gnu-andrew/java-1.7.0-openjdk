@@ -138,7 +138,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.5%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -425,6 +425,23 @@ Provides: java-%{javaver}-javadoc = %{epoch}:%{version}-%{release}
 %description javadoc
 The OpenJDK API documentation.
 
+%package accessibility
+Summary: OpenJDK accessibility connector
+Requires: java-atk-wrapper
+Requires: %{name} = %{epoch}:%{version}-%{release}
+BuildArch: noarch
+
+
+# Standard JPackage javadoc provides.
+Provides: java-accessibility = %{epoch}:%{version}-%{release}
+Provides: java-%{javaver}-accessibility = %{epoch}:%{version}-%{release}
+
+%description accessibility
+This package contains several symlinks to java-atk-wrapper.
+Those links made java transparent for (gnome) accessibility software, so tools like screen reader or so will work for java applications.
+Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is still in phase of tuning to be working with accessibility features.
+Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
+
 %prep
 
 %ifarch %{jit_arches}
@@ -630,21 +647,6 @@ cp -pPRf build/pulse-java.jar $JAVA_HOME/jre/lib/ext/
 popd
 %endif
 
-# Create broken links which leads to possible java-atk-bridge and allow configuration
-  pushd $JAVA_HOME/jre/lib/%{archinstall}
-    ln -s %{syslibdir}/java-atk-wrapper/libatk-wrapper.so.0 libatk-wrapper.so
-  popd
-  pushd $JAVA_HOME/jre/lib/ext
-     ln -s %{syslibdir}/java-atk-wrapper/java-atk-wrapper.jar  java-atk-wrapper.jar
-     #chmod 644 java-atk-wrapper.jar?
-  popd
-  pushd $JAVA_HOME/jre/lib/
-    echo "#Config file to  enable java-atk-wrapper" > accessibility.properties
-    echo "" >> accessibility.properties
-    echo "assistive_technologies=org.GNOME.Accessibility.AtkWrapper" >> accessibility.properties
-    echo "" >> accessibility.properties
-  popd
-
 # Copy tz.properties
 echo "sun.zoneinfo.dir=/usr/share/javazi" >> $JAVA_HOME/jre/lib/tz.properties
 
@@ -810,6 +812,23 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
   | sed 's|'$RPM_BUILD_ROOT'||' \
   | sed 's|^|%doc |' \
   >> %{name}-demo.files
+
+# intentionally after the files generation, as it goes to separate package
+# Create "broken" links which leads to possible java-atk-bridge and allow configuration
+# links points to java-atk-wrapper - an dependence
+  pushd $RPM_BUILD_ROOT/%{_jvmdir}/%{jredir}/lib/%{archinstall}
+    ln -s %{syslibdir}/java-atk-wrapper/libatk-wrapper.so.0 libatk-wrapper.so
+  popd
+  pushd $RPM_BUILD_ROOT/%{_jvmdir}/%{jredir}/lib/ext
+     ln -s %{syslibdir}/java-atk-wrapper/java-atk-wrapper.jar  java-atk-wrapper.jar
+  popd
+  pushd $RPM_BUILD_ROOT/%{_jvmdir}/%{jredir}/lib/
+    echo "#Config file to  enable java-atk-wrapper" > accessibility.properties
+    echo "" >> accessibility.properties
+    echo "assistive_technologies=org.GNOME.Accessibility.AtkWrapper" >> accessibility.properties
+    echo "" >> accessibility.properties
+  popd
+
 
 # FIXME: identical binaries are copied, not linked. This needs to be
 # fixed upstream.
@@ -1125,8 +1144,17 @@ exit 0
 %doc %{_javadocdir}/%{name}
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
+%files accessibility
+%{_jvmdir}/%{jredir}/lib/%{archinstall}/libatk-wrapper.so
+%{_jvmdir}/%{jredir}/lib/ext/java-atk-wrapper.jar
+%{_jvmdir}/%{jredir}/lib/accessibility.properties
+
 %changelog
-* Tue Apr 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.4.fc19
+* Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.5.fc19
+- created accessibility subpackage
+ - all intentionally broken java-ark-wrapper symlinks placed here
+
+* Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.4.fc19
 - removed bootstrap
 
 * Fri Apr 19 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.3.fc19
