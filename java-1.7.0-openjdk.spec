@@ -808,7 +808,7 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
   >> %{name}-demo.files
 
 # intentionally after the files generation, as it goes to separate package
-# Create "broken" links which leads to possible java-atk-bridge and allow configuration
+# Create links which leads to separately installed java-atk-bridge and allow configuration
 # links points to java-atk-wrapper - an dependence
   pushd $RPM_BUILD_ROOT/%{_jvmdir}/%{jredir}/lib/%{archinstall}
     ln -s %{syslibdir}/java-atk-wrapper/libatk-wrapper.so.0 libatk-wrapper.so
