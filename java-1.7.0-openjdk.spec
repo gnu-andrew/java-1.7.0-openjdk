@@ -1,8 +1,3 @@
-# If gcjbootstrap is 1 OpenJDK is bootstrapped against
-# java-1.5.0-gcj-devel.  If gcjbootstrap is 0 OpenJDK is built against
-# java-1.6.0-openjdk-devel.
-%global gcjbootstrap 0
-
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
@@ -143,7 +138,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -179,20 +174,8 @@ Source0:  openjdk-icedtea-%{icedtea_version}.tar.gz
 # This source is under maintainer's/java-team's control
 Source2:  README.src
 
-# javac wrapper (used during bootstrap to strip what ecj doesn't support)
-# This source is under manual control of maintainer/java-team
-Source3: javac-wrapper
-
-
 # Sources 6-12 are taken from hg clone http://icedtea.classpath.org/hg/icedtea7
 # Unless said differently, there is directory with required sources which should be enough to pack/rename
-
-# Auto-generated files (used only in bootstrap)
-# To reproduce: 
-# build OpenJDK7 tarball above with any JDK
-# mv generated.build generated
-# tar czf generated-files.tar.gz generated
-Source4: generated-files.tar.gz
 
 # Class rewrite to rewrite rhino hierarchy
 Source5: class-rewriter.tar.gz
@@ -261,121 +244,6 @@ Patch106: %{name}-freetype-check-fix.patch
 Patch107: abrt_friendly_hs_log_jdk7.patch
 
 #
-# Bootstrap patches (code with this is never shipped)
-#
-
-# Explicitly set javac, so that the bootstrap version is used
-Patch200: bootstrap-ant-javac.patch
-
-# Adjusted generated sources path to use prebuilt ones
-Patch201: bootstrap-corba-defs.patch
-
-# Do not use idlj to generate sources, as we use prebuilt ones
-Patch202: bootstrap-corba-idlj.patch
-
-# Disable decending into sources dir for generation
-Patch203: bootstrap-corba-no-gen.patch
-
-# Explicitly compile ORB.java
-Patch204: bootstrap-corba-orb.patch
-
-# Don't build demos in bootstrap
-Patch205: bootstrap-demos.patch
-
-# Change hex constants to be numbers instead of 0x... so that ecj can compile them right
-Patch206: bootstrap-ecj-fphexconstants.patch
-
-# Adjust opt flags to remove what ecj doesn't support
-Patch207: bootstrap-ecj-opts.patch
-
-# use pre-generated font config files
-Patch208: bootstrap-fontconfig.patch
-
-# Don't write auto-generation message in bootstrap
-Patch209: bootstrap-generated-comments.patch
-
-# Adjust bootclasspath to match what ecj has
-Patch210: bootstrap-xbootclasspath.patch
-
-# Wire in icedtea rt.jar (FIXME: name needs update, kept same for now to match icedtea name)
-Patch211: bootstrap-icedteart.patch
-
-# Wire in custom compiles rt classes
-Patch212: bootstrap-jar.patch
-
-# Compile inner opengl class explicitly
-Patch213: bootstrap-javah.patch
-
-# Disable ct.sym creation for bootstrap
-Patch214: bootstrap-symbols.patch
-
-# Disable icon generation for bootstrap
-Patch215: bootstrap-tobin.patch
-
-# Don't run test_gamma
-Patch216: bootstrap-test_gamma.patch
-
-# Disable requirement of module_lib path which bootstrap java_home doesn't have
-Patch217: bootstrap-tools.jar.patch
-
-# Allow -J opts to jar only if jar knows of them
-Patch218: bootstrap-jopt.patch
-
-# Explicitly add jaxp classes to classpath
-Patch219: bootstrap-jaxp-dependency.patch
-
-# Don't fork when generating stubs
-Patch220: bootstrap-genstubs-nofork.patch
-
-# Remove dependency on ProcessBuilder which is package private to Oracle implementation
-Patch221: bootstrap-break-processbuilder-dependency.patch
-
-# Allow to build with 1.5
-Patch222: bootstrap-revert-6973616.patch
-
-# Avoid trying to load system zone info provider and failing
-Patch223: bootstrap-revert-6941137.patch
-
-# Replace usage of string switch with if/elseif/else
-Patch224: bootstrap-ecj-stringswitch.patch
-
-# Allow langtools to use older jdk
-Patch225: bootstrap-langtools-force-old-jdk.patch
-
-# Access JDK sources and classes from langtools build
-Patch226: bootstrap-corba-dependencies.patch
-
-# Access langtools classes for Javadoc
-Patch227: bootstrap-jaxws-langtools-dependency.patch
-
-# Access JDK sources for com.sun.net.httpserver
-Patch228: bootstrap-jaxws-jdk-dependency.patch
-
-# Access JDK and generated sources to build servicability agent
-Patch229: bootstrap-hotspot-jdk-dependency.patch
-
-# Remove use of multi-catch and replace with regular multi-level catch
-Patch230: bootstrap-ecj-multicatch.patch
-
-# Remove use of try-with-resources and replace with manual close
-Patch231: bootstrap-ecj-trywithresources.patch
-
-# Disable auto-boxing and manally cast
-Patch232: bootstrap-ecj-autoboxing.patch
-
-# Use custom xslt processor
-Patch233: bootstrap-xsltproc.patch
-
-# Use constants from interface rather than impl
-Patch234: bootstrap-pr40188.patch
-
-# Remove use of diamond operator and replace with manual
-Patch235: bootstrap-ecj-diamond.patch
-
-# Adjust javah switches to only use what bootstrap version supports
-Patch236: bootstrap-javah-xbootclasspath.patch
-
-#
 # Optional component packages
 #
 
@@ -422,11 +290,7 @@ BuildRequires: zip
 BuildRequires: fontconfig
 BuildRequires: xorg-x11-fonts-Type1
 BuildRequires: zlib > 1.2.3-6
-%if %{gcjbootstrap}
-BuildRequires: java-1.5.0-gcj-devel
-%else
 BuildRequires: java-1.7.0-openjdk-devel
-%endif
 BuildRequires: fontconfig
 BuildRequires: at-spi-devel
 BuildRequires: gawk
@@ -597,9 +461,6 @@ sh %{SOURCE10}
 # Copy jaxp, jaf and jaxws drops
 mkdir drops/
 
-# Extract the generated files
-tar xzf %{SOURCE4}
-
 # Extract the rewriter (to rewrite rhino classes)
 tar xzf %{SOURCE5}
 
@@ -628,51 +489,6 @@ tar xzf %{SOURCE9}
 # Extract desktop files
 tar xzf %{SOURCE7}
 
-# If bootstrapping, apply additional patches
-%if %{gcjbootstrap}
-
-cp -a openjdk openjdk-boot
-
-# Add bootstrap patches
-%patch200
-%patch201
-%patch202
-%patch203
-%patch204
-%patch205
-%patch206
-%patch207
-%patch208
-%patch209
-%patch210
-%patch211
-%patch212
-%patch213
-%patch214
-%patch215
-%patch216
-%patch217
-%patch218
-%patch219
-%patch220
-%patch221
-%patch222
-%patch223
-%patch224
-%patch225
-%patch226
-%patch227
-%patch228
-%patch229
-%patch230
-%patch231
-%patch232
-%patch233
-%patch234
-%patch235
-%patch236
-
-%endif
 
 %build
 # How many cpu's do we have?
@@ -747,102 +563,9 @@ java -cp rewriter com.redhat.rewriter.ClassRewriter \
    jar cfm ../rhino.jar META-INF/MANIFEST.MF sun
 )
 
-%if %{gcjbootstrap}
-
-mkdir -p bootstrap/boot
-
-# Copy over JAVA_HOME from /usr/lib/jvm/java-gcj/
-cp -aL %{_jvmdir}/java-gcj/* bootstrap/boot/ || : # broken symlinks can be non-fatal but may cause this to fail
-
-# Replace javac with a wrapper that does some magic
-cp -af %{SOURCE3} bootstrap/boot/bin/javac
-chmod u+x bootstrap/boot/bin/javac # SOURCE3 may not be +x
-sed -i -e s:@RT_JAR@:$PWD/bootstrap/boot/jre/lib/rt.jar:g bootstrap/boot/bin/javac
-
-# Link the native2ascii binary
-ln -sf /usr/bin/gnative2ascii bootstrap/boot/bin/native2ascii
-
-# We don't need a disassebler, fake it
-echo "#!/bin/sh
-exit 0" > bootstrap/boot/bin/javap
-chmod u+rx bootstrap/boot/bin/javap # We need to run this during build
-
-# Modules directory
-mkdir -p bootstrap/boot/lib/modules
-
-# jdk1.6.0 link
-rm -f bootstrap/jdk1.6.0
-ln -sf boot bootstrap/jdk1.6.0
-
-# Update rt.jar with newer classes
-# Extra classes to compile for reasons like
-# http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42003
-echo "openjdk-boot/jdk/src/share/classes/java/util/regex/Matcher.java 
-openjdk-boot/jdk/src/share/classes/javax/management/remote/JMXServiceURL.java 
-openjdk-boot/jdk/src/share/classes/javax/management/modelmbean/ModelMBeanInfo.java 
-openjdk-boot/jdk/src/share/classes/javax/swing/plaf/basic/BasicDirectoryModel.java
-openjdk-boot/langtools/src/share/classes/javax/tools/JavaFileManager.java" > rt-source-files
-
-mkdir -p rt
-bootstrap/jdk1.6.0/bin/javac -g -encoding utf-8    -source 6 -target 6 -d rt \
-  -classpath %{_jvmdir}/java-gcj/jre/lib/rt.jar \
-  -sourcepath 'generated:openjdk-boot/jdk/src/share/classes:openjdk-boot/jdk/src/solaris/classes:openjdk-boot/langtools/src/share/classes:openjdk-boot/corba/src/share/classes' \
-  -bootclasspath "\'\'" @rt-source-files
-
-pushd rt
-zip -qur ../bootstrap/jdk1.6.0/jre/lib/rt.jar *
-popd
-
-# clean up
-rm -f rt-source-files
-rm -rf rt
-
-# Build it
-pushd openjdk-boot
-cp -a ../generated generated.build
-chmod u+rwx generated.build
-
-export ALT_DROPS_DIR=$PWD/../drops
-export ALT_JDK_IMPORT_PATH="$PWD/../bootstrap/jdk1.6.0"
-
-# Set generic profile
-source jdk/make/jdk_generic_profile.sh
-
-make \
-  ANT="/usr/bin/ant" \
-  ALT_BOOTDIR="$PWD/../bootstrap/jdk1.6.0" \
-  ICEDTEA_RT="$PWD/../bootstrap/jdk1.6.0/jre/lib/rt.jar" \
-  HOTSPOT_BUILD_JOBS="$NUM_PROC" \
-  NO_DOCS="true" \
-  RHINO_JAR="$PWD/../rhino/rhino.jar" \
-  GENSRCDIR="$PWD/generated.build" \
-  DISABLE_NIMBUS="true" \
-  XSLT="/usr/bin/xsltproc" \
-  FT2_CFLAGS="-I/usr/include/freetype2 " \
-  FT2_LIBS="-lfreetype " \
-%ifnarch %{jit_arches}
-  LIBFFI_CFLAGS="`pkg-config --cflags libffi` " \
-  LIBFFI_LIBS="-lffi " \
-  ZERO_BUILD="true" \
-  ZERO_LIBARCH="%{archbuild}" \
-  ZERO_ARCHDEF="%{archdef}" \
-%ifarch ppc ppc64 s390 s390x
-  ZERO_ENDIANNESS="big" \
-%else
-  ZERO_ENDIANNESS="little" \
-%endif
-%endif
-  %{nil}
-
-export JDK_TO_BUILD_WITH=$PWD/build/linux-%{archbuild}/j2sdk-image
-
-popd
-
-%else
-
 export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-openjdk
 
-%endif
+
 
 pushd openjdk >& /dev/null
 
@@ -1403,6 +1126,9 @@ exit 0
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %changelog
+* Tue Apr 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.4.fc19
+- removed bootstrap
+
 * Fri Apr 19 2013 Deepak Bhole <dbhole@redhat.com> - 1.7.0.19-2.3.9.3.fc19
 - Updated 2.1.8 tarball
 - Forcibly remove bfc files
