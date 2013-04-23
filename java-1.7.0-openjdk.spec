@@ -429,7 +429,6 @@ The OpenJDK API documentation.
 Summary: OpenJDK accessibility connector
 Requires: java-atk-wrapper
 Requires: %{name} = %{epoch}:%{version}-%{release}
-BuildArch: noarch
 
 %description accessibility
 Enables accessibility support in OpenJDK by using java-at-wrapper. This allows compatible at-spi2 based accessibility programs to work for AWT and Swing-based programs.
@@ -1148,6 +1147,7 @@ exit 0
 - cosmetic changes to  accessibility subpackage
  - removed all provides
  - changed description a bit
+- removed incorrect noarch tag from accessibility subpackage
 
 * Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.5.fc19
 - created accessibility subpackage
