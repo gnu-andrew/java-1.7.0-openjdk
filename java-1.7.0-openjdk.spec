@@ -138,7 +138,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.6%{?dist}
+Release: %{icedtea_version}.7%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -282,7 +282,6 @@ BuildRequires: libxslt
 BuildRequires: xorg-x11-proto-devel
 BuildRequires: mercurial
 BuildRequires: ant
-BuildRequires: ant-nodeps
 BuildRequires: libXinerama-devel
 BuildRequires: rhino
 BuildRequires: redhat-lsb
@@ -1143,6 +1142,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Apr 29 2013 Peter Robinson <pbrobinson@fedoraproject.org> 1.7.0.19-2.3.9.7
+- Drop ant-nodeps dependency as it's long been provided by ant
+
 * Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.6.fc20
 - sync with f19
 
