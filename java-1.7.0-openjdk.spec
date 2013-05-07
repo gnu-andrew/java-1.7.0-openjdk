@@ -138,7 +138,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.6%{?dist}
+Release: %{icedtea_version}.8%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -261,6 +261,13 @@ Patch302: systemtap.patch
 
 # Rhino support
 Patch400: rhino-icedtea-2.1.1.patch
+
+#Workaround RH947731
+Patch401: 657854-openjdk7.patch
+#Workaround RH902004
+Patch402: gstackbounds.patch
+Patch403: PStack-808293.patch
+# End of tmp patches
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -541,6 +548,10 @@ patch -l -p0 < %{PATCH104}
 patch -l -p0 < %{PATCH105}
 %endif
 
+patch -l -p0 < %{PATCH401}
+patch -l -p0 < %{PATCH402}
+patch -l -p0 < %{PATCH403}
+
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
 
@@ -767,6 +778,7 @@ done
 # Install desktop files.
 install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/{applications,pixmaps}
 for e in jconsole policytool ; do
+    sed -i "s/#ARCH#/%{_arch}/g" $e.desktop
     desktop-file-install --vendor=%{name} --mode=644 \
         --dir=$RPM_BUILD_ROOT%{_datadir}/applications $e.desktop
 done
@@ -1143,6 +1155,12 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Tue May 07 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.7.fc19
+- added patch 401 657854-openjdk7.patch (see 947731)
+- fixed icons (see https://bugzilla.redhat.com/show_bug.cgi?id=820619)
+- added patch 402 gstackbounds.patch - see (RH902004)
+- added patch 403 PStack-808293.patch - to work more about jstack
+
 * Mon Apr 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.6.fc19
 - cosmetic changes to  accessibility subpackage
  - removed all provides
