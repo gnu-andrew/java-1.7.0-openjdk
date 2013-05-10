@@ -889,10 +889,7 @@ alternatives \
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
-touch --no-create %{_datadir}/icons/hicolor
-if [ -x %{_bindir}/gtk-update-icon-cache ] ; then
-  %{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor
-fi
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 
 exit 0
 
@@ -906,12 +903,15 @@ fi
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
-touch --no-create %{_datadir}/icons/hicolor
-if [ -x %{_bindir}/gtk-update-icon-cache ] ; then
-  %{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor
+if [ $1 -eq 0 ] ; then
+    /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 fi
 
 exit 0
+
+%posttrans
+/usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %post devel
 ext=.gz
@@ -1155,6 +1155,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri May 10 2013 Adam Williamson <awilliam@redhat.com>
+- update scriptlets to follow current guidelines for updating icon cache
+
 * Tue May 07 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.7.fc19
 - added patch 401 657854-openjdk7.patch (see 947731)
 - fixed icons (see https://bugzilla.redhat.com/show_bug.cgi?id=820619)
