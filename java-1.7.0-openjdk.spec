@@ -777,7 +777,8 @@ done
 # Install desktop files.
 install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/{applications,pixmaps}
 for e in jconsole policytool ; do
-    sed -i "s/#ARCH#/%{_arch}/g" $e.desktop
+    sed -i "s/#ARCH#/%{_arch}-%{release}/g" $e.desktop
+    sed -i "s|/usr/bin|%{sdkbindir}/|g" $e.desktop
     desktop-file-install --vendor=%{name} --mode=644 \
         --dir=$RPM_BUILD_ROOT%{_datadir}/applications $e.desktop
 done
@@ -1154,6 +1155,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon May 13 2013 Jiri Vanek <jvanek@redhat.com>
+- enhancements to icons
+ - now points to openjdk directly instead though alternatives
+ - contains full version id
+
 * Fri May 10 2013 Adam Williamson <awilliam@redhat.com>
 - update scriptlets to follow current guidelines for updating icon cache
 
