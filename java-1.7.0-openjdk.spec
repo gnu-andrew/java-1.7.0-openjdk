@@ -138,7 +138,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.8%{?dist}
+Release: %{icedtea_version}.9%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -548,8 +548,10 @@ patch -l -p0 < %{PATCH105}
 %endif
 
 patch -l -p0 < %{PATCH401}
+%ifarch %{jit_arches}
 patch -l -p0 < %{PATCH402}
 patch -l -p0 < %{PATCH403}
+%endif
 
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
@@ -1155,6 +1157,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Tue May 14 2013 Jiri Vanek <jvanek@redhat.com> 1.7.0.19-2.3.9.9.fc19
+- patch402 gstackbounds.patch applied only to jit arches
+- patch403 PStack-808293.patch likewise
+
 * Mon May 13 2013 Jiri Vanek <jvanek@redhat.com>
 - enhancements to icons
  - now points to openjdk directly instead though alternatives
