@@ -120,6 +120,10 @@
 %global jvmjardir       %{_jvmjardir}/%{name}-%{version}
 %endif
 
+# The suffix for file names when we have to make them unique (from
+# other Java packages).
+%global uniquesuffix          %{name}
+
 %ifarch %{jit_arches}
 # Where to install systemtap tapset (links)
 # We would like these to be in a package specific subdir,
@@ -138,7 +142,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.9%{?dist}
+Release: %{icedtea_version}.10%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -750,7 +754,7 @@ pushd %{buildoutputdir}/j2sdk-image
     iconv -f ISO_8859-1 -t UTF8 $manpage -o $manpage.tmp
     mv -f $manpage.tmp $manpage
     install -m 644 -p $manpage $RPM_BUILD_ROOT%{_mandir}/man1/$(basename \
-      $manpage .1)-%{name}.1
+      $manpage .1)-%{uniquesuffix}.1
   done
 
   # Install demos and samples.
@@ -860,23 +864,23 @@ alternatives \
   --slave %{_bindir}/tnameserv tnameserv %{jrebindir}/tnameserv \
   --slave %{_bindir}/unpack200 unpack200 %{jrebindir}/unpack200 \
   --slave %{_mandir}/man1/java.1$ext java.1$ext \
-  %{_mandir}/man1/java-%{name}.1$ext \
+  %{_mandir}/man1/java-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/keytool.1$ext keytool.1$ext \
-  %{_mandir}/man1/keytool-%{name}.1$ext \
+  %{_mandir}/man1/keytool-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/orbd.1$ext orbd.1$ext \
-  %{_mandir}/man1/orbd-%{name}.1$ext \
+  %{_mandir}/man1/orbd-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/pack200.1$ext pack200.1$ext \
-  %{_mandir}/man1/pack200-%{name}.1$ext \
+  %{_mandir}/man1/pack200-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/rmid.1$ext rmid.1$ext \
-  %{_mandir}/man1/rmid-%{name}.1$ext \
+  %{_mandir}/man1/rmid-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/rmiregistry.1$ext rmiregistry.1$ext \
-  %{_mandir}/man1/rmiregistry-%{name}.1$ext \
+  %{_mandir}/man1/rmiregistry-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/servertool.1$ext servertool.1$ext \
-  %{_mandir}/man1/servertool-%{name}.1$ext \
+  %{_mandir}/man1/servertool-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/tnameserv.1$ext tnameserv.1$ext \
-  %{_mandir}/man1/tnameserv-%{name}.1$ext \
+  %{_mandir}/man1/tnameserv-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/unpack200.1$ext unpack200.1$ext \
-  %{_mandir}/man1/unpack200-%{name}.1$ext
+  %{_mandir}/man1/unpack200-%{uniquesuffix}.1$ext
 
 alternatives \
   --install %{_jvmdir}/jre-%{origin} \
@@ -952,61 +956,61 @@ alternatives \
   --slave %{_bindir}/wsimport wsimport %{sdkbindir}/wsimport \
   --slave %{_bindir}/xjc xjc %{sdkbindir}/xjc \
   --slave %{_mandir}/man1/appletviewer.1$ext appletviewer.1$ext \
-  %{_mandir}/man1/appletviewer-%{name}.1$ext \
+  %{_mandir}/man1/appletviewer-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/apt.1$ext apt.1$ext \
-  %{_mandir}/man1/apt-%{name}.1$ext \
+  %{_mandir}/man1/apt-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/extcheck.1$ext extcheck.1$ext \
-  %{_mandir}/man1/extcheck-%{name}.1$ext \
+  %{_mandir}/man1/extcheck-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jar.1$ext jar.1$ext \
-  %{_mandir}/man1/jar-%{name}.1$ext \
+  %{_mandir}/man1/jar-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jarsigner.1$ext jarsigner.1$ext \
-  %{_mandir}/man1/jarsigner-%{name}.1$ext \
+  %{_mandir}/man1/jarsigner-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/javac.1$ext javac.1$ext \
-  %{_mandir}/man1/javac-%{name}.1$ext \
+  %{_mandir}/man1/javac-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/javadoc.1$ext javadoc.1$ext \
-  %{_mandir}/man1/javadoc-%{name}.1$ext \
+  %{_mandir}/man1/javadoc-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/javah.1$ext javah.1$ext \
-  %{_mandir}/man1/javah-%{name}.1$ext \
+  %{_mandir}/man1/javah-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/javap.1$ext javap.1$ext \
-  %{_mandir}/man1/javap-%{name}.1$ext \
+  %{_mandir}/man1/javap-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jconsole.1$ext jconsole.1$ext \
-  %{_mandir}/man1/jconsole-%{name}.1$ext \
+  %{_mandir}/man1/jconsole-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jdb.1$ext jdb.1$ext \
-  %{_mandir}/man1/jdb-%{name}.1$ext \
+  %{_mandir}/man1/jdb-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jhat.1$ext jhat.1$ext \
-  %{_mandir}/man1/jhat-%{name}.1$ext \
+  %{_mandir}/man1/jhat-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jinfo.1$ext jinfo.1$ext \
-  %{_mandir}/man1/jinfo-%{name}.1$ext \
+  %{_mandir}/man1/jinfo-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jmap.1$ext jmap.1$ext \
-  %{_mandir}/man1/jmap-%{name}.1$ext \
+  %{_mandir}/man1/jmap-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jps.1$ext jps.1$ext \
-  %{_mandir}/man1/jps-%{name}.1$ext \
+  %{_mandir}/man1/jps-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jrunscript.1$ext jrunscript.1$ext \
-  %{_mandir}/man1/jrunscript-%{name}.1$ext \
+  %{_mandir}/man1/jrunscript-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jsadebugd.1$ext jsadebugd.1$ext \
-  %{_mandir}/man1/jsadebugd-%{name}.1$ext \
+  %{_mandir}/man1/jsadebugd-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jstack.1$ext jstack.1$ext \
-  %{_mandir}/man1/jstack-%{name}.1$ext \
+  %{_mandir}/man1/jstack-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jstat.1$ext jstat.1$ext \
-  %{_mandir}/man1/jstat-%{name}.1$ext \
+  %{_mandir}/man1/jstat-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/jstatd.1$ext jstatd.1$ext \
-  %{_mandir}/man1/jstatd-%{name}.1$ext \
+  %{_mandir}/man1/jstatd-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/native2ascii.1$ext native2ascii.1$ext \
-  %{_mandir}/man1/native2ascii-%{name}.1$ext \
+  %{_mandir}/man1/native2ascii-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/policytool.1$ext policytool.1$ext \
-  %{_mandir}/man1/policytool-%{name}.1$ext \
+  %{_mandir}/man1/policytool-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/rmic.1$ext rmic.1$ext \
-  %{_mandir}/man1/rmic-%{name}.1$ext \
+  %{_mandir}/man1/rmic-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/schemagen.1$ext schemagen.1$ext \
-  %{_mandir}/man1/schemagen-%{name}.1$ext \
+  %{_mandir}/man1/schemagen-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/serialver.1$ext serialver.1$ext \
-  %{_mandir}/man1/serialver-%{name}.1$ext \
+  %{_mandir}/man1/serialver-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/wsgen.1$ext wsgen.1$ext \
-  %{_mandir}/man1/wsgen-%{name}.1$ext \
+  %{_mandir}/man1/wsgen-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/wsimport.1$ext wsimport.1$ext \
-  %{_mandir}/man1/wsimport-%{name}.1$ext \
+  %{_mandir}/man1/wsimport-%{uniquesuffix}.1$ext \
   --slave %{_mandir}/man1/xjc.1$ext xjc.1$ext \
-  %{_mandir}/man1/xjc-%{name}.1$ext
+  %{_mandir}/man1/xjc-%{uniquesuffix}.1$ext
 
 alternatives \
   --install %{_jvmdir}/java-%{origin} \
@@ -1064,15 +1068,15 @@ exit 0
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.security
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/logging.properties
 %{_datadir}/icons/hicolor/*x*/apps/java-%{javaver}.png
-%{_mandir}/man1/java-%{name}.1*
-%{_mandir}/man1/keytool-%{name}.1*
-%{_mandir}/man1/orbd-%{name}.1*
-%{_mandir}/man1/pack200-%{name}.1*
-%{_mandir}/man1/rmid-%{name}.1*
-%{_mandir}/man1/rmiregistry-%{name}.1*
-%{_mandir}/man1/servertool-%{name}.1*
-%{_mandir}/man1/tnameserv-%{name}.1*
-%{_mandir}/man1/unpack200-%{name}.1*
+%{_mandir}/man1/java-%{uniquesuffix}.1*
+%{_mandir}/man1/keytool-%{uniquesuffix}.1*
+%{_mandir}/man1/orbd-%{uniquesuffix}.1*
+%{_mandir}/man1/pack200-%{uniquesuffix}.1*
+%{_mandir}/man1/rmid-%{uniquesuffix}.1*
+%{_mandir}/man1/rmiregistry-%{uniquesuffix}.1*
+%{_mandir}/man1/servertool-%{uniquesuffix}.1*
+%{_mandir}/man1/tnameserv-%{uniquesuffix}.1*
+%{_mandir}/man1/unpack200-%{uniquesuffix}.1*
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/nss.cfg
 %{_jvmdir}/%{jredir}/lib/audio/
 %ifarch %{jit_arches}
@@ -1102,38 +1106,38 @@ exit 0
 %{_jvmjardir}/%{sdklnk}
 %{_datadir}/applications/*jconsole.desktop
 %{_datadir}/applications/*policytool.desktop
-%{_mandir}/man1/appletviewer-%{name}.1*
-%{_mandir}/man1/apt-%{name}.1*
-%{_mandir}/man1/extcheck-%{name}.1*
-%{_mandir}/man1/idlj-%{name}.1*
-%{_mandir}/man1/jar-%{name}.1*
-%{_mandir}/man1/jarsigner-%{name}.1*
-%{_mandir}/man1/javac-%{name}.1*
-%{_mandir}/man1/javadoc-%{name}.1*
-%{_mandir}/man1/javah-%{name}.1*
-%{_mandir}/man1/javap-%{name}.1*
-%{_mandir}/man1/jconsole-%{name}.1*
+%{_mandir}/man1/appletviewer-%{uniquesuffix}.1*
+%{_mandir}/man1/apt-%{uniquesuffix}.1*
+%{_mandir}/man1/extcheck-%{uniquesuffix}.1*
+%{_mandir}/man1/idlj-%{uniquesuffix}.1*
+%{_mandir}/man1/jar-%{uniquesuffix}.1*
+%{_mandir}/man1/jarsigner-%{uniquesuffix}.1*
+%{_mandir}/man1/javac-%{uniquesuffix}.1*
+%{_mandir}/man1/javadoc-%{uniquesuffix}.1*
+%{_mandir}/man1/javah-%{uniquesuffix}.1*
+%{_mandir}/man1/javap-%{uniquesuffix}.1*
+%{_mandir}/man1/jconsole-%{uniquesuffix}.1*
 %ifarch %{jit_arches} # Only in u4+
-%{_mandir}/man1/jcmd-%{name}.1*
+%{_mandir}/man1/jcmd-%{uniquesuffix}.1*
 %endif
-%{_mandir}/man1/jdb-%{name}.1*
-%{_mandir}/man1/jhat-%{name}.1*
-%{_mandir}/man1/jinfo-%{name}.1*
-%{_mandir}/man1/jmap-%{name}.1*
-%{_mandir}/man1/jps-%{name}.1*
-%{_mandir}/man1/jrunscript-%{name}.1*
-%{_mandir}/man1/jsadebugd-%{name}.1*
-%{_mandir}/man1/jstack-%{name}.1*
-%{_mandir}/man1/jstat-%{name}.1*
-%{_mandir}/man1/jstatd-%{name}.1*
-%{_mandir}/man1/native2ascii-%{name}.1*
-%{_mandir}/man1/policytool-%{name}.1*
-%{_mandir}/man1/rmic-%{name}.1*
-%{_mandir}/man1/schemagen-%{name}.1*
-%{_mandir}/man1/serialver-%{name}.1*
-%{_mandir}/man1/wsgen-%{name}.1*
-%{_mandir}/man1/wsimport-%{name}.1*
-%{_mandir}/man1/xjc-%{name}.1*
+%{_mandir}/man1/jdb-%{uniquesuffix}.1*
+%{_mandir}/man1/jhat-%{uniquesuffix}.1*
+%{_mandir}/man1/jinfo-%{uniquesuffix}.1*
+%{_mandir}/man1/jmap-%{uniquesuffix}.1*
+%{_mandir}/man1/jps-%{uniquesuffix}.1*
+%{_mandir}/man1/jrunscript-%{uniquesuffix}.1*
+%{_mandir}/man1/jsadebugd-%{uniquesuffix}.1*
+%{_mandir}/man1/jstack-%{uniquesuffix}.1*
+%{_mandir}/man1/jstat-%{uniquesuffix}.1*
+%{_mandir}/man1/jstatd-%{uniquesuffix}.1*
+%{_mandir}/man1/native2ascii-%{uniquesuffix}.1*
+%{_mandir}/man1/policytool-%{uniquesuffix}.1*
+%{_mandir}/man1/rmic-%{uniquesuffix}.1*
+%{_mandir}/man1/schemagen-%{uniquesuffix}.1*
+%{_mandir}/man1/serialver-%{uniquesuffix}.1*
+%{_mandir}/man1/wsgen-%{uniquesuffix}.1*
+%{_mandir}/man1/wsimport-%{uniquesuffix}.1*
+%{_mandir}/man1/xjc-%{uniquesuffix}.1*
 %ifarch %{jit_arches}
 %{tapsetroot}
 %endif
@@ -1158,6 +1162,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri May 17 2013 Omair Majid <omajid@redhat.com> - 1.7.0.19-2.3.9.10.fc20
+- Replace %{name} with %{uniquesuffix} where it's used as a unique suffix.
+
 * Tue May 14 2013 Jiri Vanek <jvanek@redhat.com> 1.7.0.19-2.3.9.9.fc19
 - patch402 gstackbounds.patch applied only to jit arches
 - patch403 PStack-808293.patch likewise
