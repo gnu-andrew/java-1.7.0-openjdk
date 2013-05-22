@@ -7,6 +7,9 @@
 %global multilib_arches ppc64 sparc64 x86_64
 
 %global jit_arches %{ix86} x86_64 sparcv9 sparc64
+#this is even greater restriction then jit archs. It should have all modifications 
+#as jit_archs, and as addition also using 2.1 source
+%global arm_arches armv5tel armv7hl
 
 %ifarch x86_64
 %global archbuild amd64
@@ -142,7 +145,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.10%{?dist}
+Release: %{icedtea_version}.11%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -447,10 +450,10 @@ Although working pretty fine, there are known issues with accessibility on, so d
 
 %prep
 
-%ifarch %{jit_arches}
-%global source_num 0
-%else
+%ifarch %{arm_arches}
 %global source_num 100
+%else
+%global source_num 0
 %endif
 
 %setup -q -c -n %{name} -T -a %{source_num}
@@ -459,10 +462,10 @@ cp %{SOURCE2} .
 # OpenJDK patches
 
 # Rhino patch -- one default version (100) and one specific to 2.1.1 (400)
-%ifarch %{jit_arches}
-%patch100
-%else
+%ifarch %{arm_arches}
 %patch400
+%else
+%patch100
 %endif
 
 # pulseaudio support
@@ -611,10 +614,10 @@ make \
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
-%ifarch %{jit_arches}
-  JDK_UPDATE_VERSION=`printf "%02d" %{buildver}` \
-%else
+%ifnarch %{arm_arches}
   JDK_UPDATE_VERSION="03" \
+%else
+  JDK_UPDATE_VERSION=`printf "%02d" %{buildver}` \
 %endif
   MILESTONE="fcs" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
@@ -1116,7 +1119,7 @@ exit 0
 %{_mandir}/man1/javah-%{uniquesuffix}.1*
 %{_mandir}/man1/javap-%{uniquesuffix}.1*
 %{_mandir}/man1/jconsole-%{uniquesuffix}.1*
-%ifarch %{jit_arches} # Only in u4+
+%ifnarch %{arm_arches} # Only in u4+
 %{_mandir}/man1/jcmd-%{uniquesuffix}.1*
 %endif
 %{_mandir}/man1/jdb-%{uniquesuffix}.1*
@@ -1161,6 +1164,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu May 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.11.fc20
+- added variable arm_arches as restriction to some cases of not jit_arches
+- size_t patch adapted to 2.3 which is now default on all except arm arches
+
 * Fri May 17 2013 Omair Majid <omajid@redhat.com> - 1.7.0.19-2.3.9.10.fc20
 - Replace %{name} with %{uniquesuffix} where it's used as a unique suffix.
 
