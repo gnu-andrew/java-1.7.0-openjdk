@@ -90,11 +90,10 @@
 %ifarch %{multilib_arches}
 %global syslibdir       %{_prefix}/lib64
 %global _libdir         %{_prefix}/lib
-%global archname        %{name}.%{_arch}
 %else
 %global syslibdir       %{_libdir}
-%global archname        %{name}
 %endif
+%global archname        %{name}.%{_arch}
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
@@ -145,7 +144,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.11%{?dist}
+Release: %{icedtea_version}.12%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -203,7 +202,7 @@ Source9: pulseaudio.tar.gz
 # Removed libraries that we link instead
 Source10: remove-intree-libraries.sh
 
-# For primary arches, build latest and for secondary, use hs22
+# For primary arches, build latest and for arm, use hs22
 # base (icedtea-2.2.1 tag)
 
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
@@ -248,7 +247,7 @@ Patch105: %{name}-ppc-zero-hotspot.patch
 Patch106: %{name}-freetype-check-fix.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
-Patch107: abrt_friendly_hs_log_jdk7.patch
+Patch200: abrt_friendly_hs_log_jdk7.patch
 
 #
 # Optional component packages
@@ -456,7 +455,7 @@ Although working pretty fine, there are known issues with accessibility on, so d
 %global source_num 0
 %endif
 
-%setup -q -c -n %{name} -T -a %{source_num}
+%setup -q -c -n %{uniquesuffix} -T -a %{source_num}
 cp %{SOURCE2} .
 
 # OpenJDK patches
@@ -494,7 +493,7 @@ tar xzf %{SOURCE6}
 
 for file in tapset/*.in; do
 
-    OUTPUT_FILE=`echo $file | sed -e s:\.in$::g`
+    OUTPUT_FILE=`echo $file | sed -e s:%{javaver}\.stp\.in$:%{version}-%{release}.stp:g`
     sed -e s:@ABS_SERVER_LIBJVM_SO@:%{_jvmdir}/%{sdkdir}/jre/lib/amd64/server/libjvm.so:g $file > $OUTPUT_FILE
     sed -i -e '/@ABS_CLIENT_LIBJVM_SO@/d' $OUTPUT_FILE
     sed -i -e s:@ABS_JAVA_HOME_DIR@:%{_jvmdir}/%{sdkdir}:g $OUTPUT_FILE
@@ -546,7 +545,7 @@ patch -l -p0 < %{PATCH103}
 %endif
 
 patch -l -p0 < %{PATCH106}
-patch -l -p0 < %{PATCH107}
+patch -l -p0 < %{PATCH200}
 
 %ifarch ppc ppc64
 # PPC fixes
@@ -682,16 +681,21 @@ popd
 
 pushd %{buildoutputdir}/j2sdk-image
 
+#install jsa directories so we can owe them
+mkdir -p $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/%{archinstall}/server/
+mkdir -p $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
+
   # Install main files.
   install -d -m 755 $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
   cp -a bin include lib src.zip $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
   install -d -m 755 $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}
   cp -a jre/bin jre/lib $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}
+  cp -a ASSEMBLY_EXCEPTION LICENSE THIRD_PARTY_README $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
 
 %ifarch %{jit_arches}
   # Install systemtap support files.
   install -dm 755 $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/tapset
-  cp -a $RPM_BUILD_DIR/%{name}/tapset/*.stp $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/tapset/
+  cp -a $RPM_BUILD_DIR/%{uniquesuffix}/tapset/*.stp $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/tapset/
   install -d -m 755 $RPM_BUILD_ROOT%{tapsetdir}
   pushd $RPM_BUILD_ROOT%{tapsetdir}
     RELATIVE=$(%{abs2rel} %{_jvmdir}/%{sdkdir}/tapset %{tapsetdir})
@@ -788,9 +792,13 @@ install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/{applications,pixmaps}
 for e in jconsole policytool ; do
     sed -i "s/#ARCH#/%{_arch}-%{release}/g" $e.desktop
     sed -i "s|/usr/bin|%{sdkbindir}/|g" $e.desktop
-    desktop-file-install --vendor=%{name} --mode=644 \
+    desktop-file-install --vendor=%{uniquesuffix} --mode=644 \
         --dir=$RPM_BUILD_ROOT%{_datadir}/applications $e.desktop
 done
+
+# Install /etc/.java/.systemPrefs/ directory
+# See https://bugzilla.redhat.com/show_bug.cgi?id=741821
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/.java/.systemPrefs
 
 # Find JRE directories.
 find $RPM_BUILD_ROOT%{_jvmdir}/%{jredir} -type d \
@@ -1056,9 +1064,9 @@ exit 0
 
 %files -f %{name}.files
 %defattr(-,root,root,-)
-%doc %{buildoutputdir}/j2sdk-image/jre/ASSEMBLY_EXCEPTION
-%doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
-%doc %{buildoutputdir}/j2sdk-image/jre/THIRD_PARTY_README
+%doc %{_jvmdir}/%{sdkdir}/ASSEMBLY_EXCEPTION
+%doc %{_jvmdir}/%{sdkdir}/LICENSE
+%doc %{_jvmdir}/%{sdkdir}/THIRD_PARTY_README
 %dir %{_jvmdir}/%{sdkdir}
 %{_jvmdir}/%{jrelnk}
 %{_jvmjardir}/%{jrelnk}
@@ -1085,13 +1093,17 @@ exit 0
 %attr(664, root, root) %ghost %{_jvmdir}/%{jredir}/lib/%{archinstall}/server/classes.jsa
 %attr(664, root, root) %ghost %{_jvmdir}/%{jredir}/lib/%{archinstall}/client/classes.jsa
 %endif
+%{_jvmdir}/%{jredir}/lib/%{archinstall}/server/
+%{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
+%{_sysconfdir}/.java/
+%{_sysconfdir}/.java/.systemPrefs
 
 
 %files devel
 %defattr(-,root,root,-)
-%doc %{buildoutputdir}/j2sdk-image/ASSEMBLY_EXCEPTION
-%doc %{buildoutputdir}/j2sdk-image/LICENSE
-%doc %{buildoutputdir}/j2sdk-image/THIRD_PARTY_README
+%doc %{_jvmdir}/%{sdkdir}/ASSEMBLY_EXCEPTION
+%doc %{_jvmdir}/%{sdkdir}/LICENSE
+%doc %{_jvmdir}/%{sdkdir}/THIRD_PARTY_README
 %dir %{_jvmdir}/%{sdkdir}/bin
 %dir %{_jvmdir}/%{sdkdir}/include
 %dir %{_jvmdir}/%{sdkdir}/lib
@@ -1146,7 +1158,7 @@ exit 0
 
 %files demo -f %{name}-demo.files
 %defattr(-,root,root,-)
-%doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
+%doc %{_jvmdir}/%{sdkdir}/LICENSE
 
 %files src
 %defattr(-,root,root,-)
@@ -1164,6 +1176,13 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Jun 05 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.12.fc20
+- Aadded client/server directories so they can be owned
+- more usage of uniquesuffix
+- all full-paths now have arch
+- Renamed patch 107 to 200
+- Added fix for RH857717, owned /etc/.java/ and /etc/.java/.systemPrefs
+
 * Thu May 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.11.fc20
 - added variable arm_arches as restriction to some cases of not jit_arches
 - size_t patch adapted to 2.3 which is now default on all except arm arches
