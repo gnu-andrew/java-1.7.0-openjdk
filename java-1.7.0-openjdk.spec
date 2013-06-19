@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.9
+%global icedtea_version 2.3.10
 %global hg_tag icedtea-{icedtea_version}
 
 %global multilib_arches ppc64 sparc64 x86_64
@@ -97,30 +97,22 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        19
+%global buildver        25
 # Keep priority on 6digits in case buildver>9
 %global priority        1700%{buildver}
 %global javaver         1.7.0
 
 # Standard JPackage directories and symbolic links.
 # Make 64-bit JDKs just another alternative on 64-bit architectures.
-%ifarch %{multilib_arches}
 %global sdklnk          java-%{javaver}-%{origin}.%{_arch}
 %global jrelnk          jre-%{javaver}-%{origin}.%{_arch}
 %global sdkdir          %{name}-%{version}.%{_arch}
-%else
-%global sdklnk          java-%{javaver}-%{origin}
-%global jrelnk          jre-%{javaver}-%{origin}
-%global sdkdir          %{name}-%{version}
-%endif
+
 %global jredir          %{sdkdir}/jre
 %global sdkbindir       %{_jvmdir}/%{sdklnk}/bin
 %global jrebindir       %{_jvmdir}/%{jrelnk}/bin
-%ifarch %{multilib_arches}
+
 %global jvmjardir       %{_jvmjardir}/%{name}-%{version}.%{_arch}
-%else
-%global jvmjardir       %{_jvmjardir}/%{name}-%{version}
-%endif
 
 # The suffix for file names when we have to make them unique (from
 # other Java packages).
@@ -144,7 +136,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.12%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -206,8 +198,8 @@ Source10: remove-intree-libraries.sh
 # base (icedtea-2.2.1 tag)
 
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
-# hg tag: icedtea-2.1.8
-Source100:  openjdk-icedtea-2.1.8.tar.gz
+# hg tag: icedtea-2.1.9
+Source100:  openjdk-icedtea-2.1.9.tar.gz
 
 # RPM/distribution specific patches
 
@@ -236,6 +228,9 @@ Patch100: rhino.patch
 # Type fixing for s390
 Patch101: %{name}-bitmap.patch
 Patch102: %{name}-size_t.patch
+
+# Disable system LCMS as 2.3.10 security release have fixes for it
+Patch500:  %{name}-disable-system-lcms.patch
 
 # Patches for Arm
 Patch103: %{name}-arm-fixes.patch
@@ -282,7 +277,6 @@ BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
 BuildRequires: desktop-file-utils
 BuildRequires: giflib-devel
-BuildRequires: lcms2-devel
 BuildRequires: libX11-devel
 BuildRequires: libXi-devel
 BuildRequires: libXp-devel
@@ -332,7 +326,6 @@ BuildRequires: systemtap-sdt-devel
 %endif
 
 Requires: rhino
-Requires: lcms2
 Requires: libjpeg = 6b
 Requires: fontconfig
 Requires: xorg-x11-fonts-Type1
@@ -545,6 +538,9 @@ patch -l -p0 < %{PATCH102}
 patch -l -p0 < %{PATCH103}
 %endif
 
+# Disable system LCMS2
+patch -l -p0 < %{PATCH500}
+
 patch -l -p0 < %{PATCH106}
 patch -l -p0 < %{PATCH200}
 
@@ -614,7 +610,7 @@ make \
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
-%ifnarch %{arm_arches}
+%ifarch %{arm_arches}
   JDK_UPDATE_VERSION="03" \
 %else
   JDK_UPDATE_VERSION=`printf "%02d" %{buildver}` \
@@ -623,6 +619,7 @@ make \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
   STATIC_CXX="false" \
   RHINO_JAR="$PWD/../rhino/rhino.jar" \
+  GENSRCDIR="$PWD/generated.build" \
   FT2_CFLAGS="-I/usr/include/freetype2 " \
   FT2_LIBS="-lfreetype " \
   DEBUG_CLASSFILES="true" \
@@ -1177,14 +1174,30 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Jun 19 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.3.fc19
+- update of IcedTea7-forest 2.3.10 tarball
+
+* Thu Jun 13 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.2.fc19
+- added patch1000 MBeanFix.patch to fix regressions caused by security patches
+
+* Thu Jun 13 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.1.fc19
+- arm tarball updated to 2.1.9
+- build bumped to 25
+
+* Wed Jun 12 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.10.0.fc19
+- All full-paths now have arch
+- temporarly swithced to intree lcms as it have security fixes (patch 500)
+ - added  GENSRCDIR="$PWD/generated.build" to be able to
+ - removed (build)requires  lcms2(-devel)
+- Updated to latest IcedTea7-forest 2.3.10
+
 * Wed Jun 05 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.12.fc19
 - Added client/server directories so they can be owned
 - More usage of uniquesuffix
-- All full-paths now have arch
 - Renamed patch 107 to 200
 - Added fix for RH857717, owned /etc/.java/ and /etc/.java/.systemPrefs
 
-* Thu May 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.11.fc19
+* Wed May 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.19-2.3.9.11.fc19
 - added variable arm_arches as restriction to some cases of not jit_arches
 - size_t patch adapted to 2.3 which is now default on all except arm arches
 
@@ -1243,7 +1256,7 @@ exit 0
 - fixed priority (one zero deleted)
 - unapplied patch2
 
-* Wed Apr 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.6.fc19
+* Thu Apr 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.8.6.fc19
 - added patch107 abrt_friendly_hs_log_jdk7.patch
 - removed patch2   java-1.7.0-openjdk-java-access-bridge-idlj.patch
 
@@ -1292,7 +1305,7 @@ exit 0
 - Updated to icedtea7 2.3.8 (forest)
 - Removed upstreamed patches.
 
-* Fri Feb 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.7.fc19
+* Sat Feb 16 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.9-2.3.7.fc19
 - Updated to 2.3.7 icedtea7 tarball
 - Updated the 2.1.6 icedtea7 tarballfor arm
 - Removed testing
@@ -1355,7 +1368,7 @@ exit 0
   865359, 865363, 865365, 865370, 865428, 865471, 865434, 865511, 865514,
   865519, 865531, 865541, 865568
 
-* Thu Sep 7 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.1.fc19.3
+* Fri Sep 7 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.1.fc19.3
 - Not-jit-archs source tarball updated to openjdk-icedtea-2.1.2.tar.gz
 
 * Thu Aug 30 2012 jiri Vanek <jvanek@redhat.com> - 1.7.0.6-2.3.1.fc19.2
