@@ -136,7 +136,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1173,6 +1173,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Jun 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.4.f17
+- Sync with upstream IcedTea7-forest 2.3.10 tag
+- Fixes regressions as introduced with previous 1.7.0.25 updates
+  - rhbz#978005, rhbz#977979, rhbz#976693, IcedTeaBZ#1487.
+
 * Wed Jun 19 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.3.fc20
 - update of IcedTea7-forest 2.3.10 tarball
 
