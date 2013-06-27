@@ -117,6 +117,7 @@
 # The suffix for file names when we have to make them unique (from
 # other Java packages).
 %global uniquesuffix          %{name}
+%global uniquejavadocdir      %{name}
 
 %ifarch %{jit_arches}
 # Where to install systemtap tapset (links)
@@ -504,13 +505,6 @@ tar xzf %{SOURCE9}
 # Extract desktop files
 tar xzf %{SOURCE7}
 
-
-%build
-# How many cpu's do we have?
-export NUM_PROC=`/usr/bin/getconf _NPROCESSORS_ONLN 2> /dev/null || :`
-export NUM_PROC=${NUM_PROC:-1}
-
-# Build IcedTea and OpenJDK.
 %ifarch s390x sparc64 alpha ppc64
 export ARCH_DATA_MODEL=64
 %endif
@@ -518,42 +512,50 @@ export ARCH_DATA_MODEL=64
 export CFLAGS="$CFLAGS -mieee"
 %endif
 
-patch -l -p0 < %{PATCH3}
-patch -l -p0 < %{PATCH4}
+%patch3
+%patch4
 
 %if %{debug}
-patch -l -p0 < %{PATCH5}
-patch -l -p0 < %{PATCH6}
+%patch5
+%patch6
 %endif
 
 # Type fixes for s390
 %ifarch s390 s390x
-patch -l -p0 < %{PATCH101}
-patch -l -p0 < %{PATCH102}
+%patch101
+%patch102
 %endif
 
 # Arm fixes
 %ifarch %{arm}
-patch -l -p0 < %{PATCH103}
+%patch103
 %endif
 
 # Disable system LCMS2
-patch -l -p0 < %{PATCH500}
+%patch500
 
-patch -l -p0 < %{PATCH106}
-patch -l -p0 < %{PATCH200}
+%patch106
+%patch200
 
 %ifarch ppc ppc64
 # PPC fixes
-patch -l -p0 < %{PATCH104}
-patch -l -p0 < %{PATCH105}
+%patch104
+%patch105
 %endif
 
-patch -l -p0 < %{PATCH401}
+%patch401
 %ifarch %{jit_arches}
-patch -l -p0 < %{PATCH402}
-patch -l -p0 < %{PATCH403}
+%patch402
+%patch403
 %endif
+
+%build
+# Build IcedTea and OpenJDK.
+# How many cpu's do we have?
+export NUM_PROC=`/usr/bin/getconf _NPROCESSORS_ONLN 2> /dev/null || :`
+export NUM_PROC=${NUM_PROC:-1}
+
+
 
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
@@ -775,7 +777,7 @@ install -m 644 %{SOURCE8} $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/security/
 
 # Install Javadoc documentation.
 install -d -m 755 $RPM_BUILD_ROOT%{_javadocdir}
-cp -a %{buildoutputdir}/docs $RPM_BUILD_ROOT%{_javadocdir}/%{name}
+cp -a %{buildoutputdir}/docs $RPM_BUILD_ROOT%{_javadocdir}/%{uniquejavadocdir}
 
 # Install icons and menu entries.
 for s in 16 24 32 48 ; do
@@ -1045,7 +1047,7 @@ exit 0
 
 %post javadoc
 alternatives \
-  --install %{_javadocdir}/java javadocdir %{_javadocdir}/%{name}/api \
+  --install %{_javadocdir}/java javadocdir %{_javadocdir}/%{uniquejavadocdir}/api \
   %{priority}
 
 exit 0
@@ -1053,7 +1055,7 @@ exit 0
 %postun javadoc
 if [ $1 -eq 0 ]
 then
-  alternatives --remove javadocdir %{_javadocdir}/%{name}/api
+  alternatives --remove javadocdir %{_javadocdir}/%{uniquejavadocdir}/api
 fi
 
 exit 0
@@ -1164,7 +1166,7 @@ exit 0
 
 %files javadoc
 %defattr(-,root,root,-)
-%doc %{_javadocdir}/%{name}
+%doc %{_javadocdir}/%{uniquejavadocdir}
 %doc %{buildoutputdir}/j2sdk-image/jre/LICENSE
 
 %files accessibility
@@ -1173,7 +1175,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
-* Thu Jun 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.4.f17
+* Thu Jun 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.5.f20
+- added uniquejavadocdir to improve diffability
+- all patch commands repalced by patch macro
+
+* Thu Jun 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.4.f20
 - Sync with upstream IcedTea7-forest 2.3.10 tag
 - Fixes regressions as introduced with previous 1.7.0.25 updates
   - rhbz#978005, rhbz#977979, rhbz#976693, IcedTeaBZ#1487.
