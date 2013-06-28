@@ -137,7 +137,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.5%{?dist}
+Release: %{icedtea_version}.6%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1175,6 +1175,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jun 28 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.6.f20
+- updated java-1.7.0-openjdk-ppc-zero-hotspot.patch to pass without loose patching
+
 * Thu Jun 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.5.f20
 - added uniquejavadocdir to improve diffability
 - all patch commands repalced by patch macro
