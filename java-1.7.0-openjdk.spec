@@ -505,13 +505,6 @@ tar xzf %{SOURCE9}
 # Extract desktop files
 tar xzf %{SOURCE7}
 
-%ifarch s390x sparc64 alpha ppc64
-export ARCH_DATA_MODEL=64
-%endif
-%ifarch alpha
-export CFLAGS="$CFLAGS -mieee"
-%endif
-
 %patch3
 %patch4
 
@@ -550,12 +543,17 @@ export CFLAGS="$CFLAGS -mieee"
 %endif
 
 %build
-# Build IcedTea and OpenJDK.
 # How many cpu's do we have?
 export NUM_PROC=`/usr/bin/getconf _NPROCESSORS_ONLN 2> /dev/null || :`
 export NUM_PROC=${NUM_PROC:-1}
 
-
+# Build IcedTea and OpenJDK.
+%ifarch s390x sparc64 alpha ppc64
+export ARCH_DATA_MODEL=64
+%endif
+%ifarch alpha
+export CFLAGS="$CFLAGS -mieee"
+%endif
 
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
