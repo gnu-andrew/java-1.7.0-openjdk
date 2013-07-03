@@ -137,7 +137,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.6%{?dist}
+Release: %{icedtea_version}.7%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -167,7 +167,7 @@ URL:      http://openjdk.java.net/
 # hg clone $REPO/langtools/ openjdk/langtools -r %{hg_tag}
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
 # tar czf openjdk-icedtea-%{icedtea_version}.tar.gz openjdk
-Source0:  openjdk-icedtea-%{icedtea_version}.tar.gz
+Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -196,11 +196,10 @@ Source9: pulseaudio.tar.gz
 Source10: remove-intree-libraries.sh
 
 # For primary arches, build latest and for arm, use hs22
-# base (icedtea-2.2.1 tag)
-
 # http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
 # hg tag: icedtea-2.1.9
-Source100:  openjdk-icedtea-2.1.9.tar.gz
+# otherwise procedure same as for main tarball
+Source100:  openjdk-icedtea-2.1.9.tar.xz
 
 # RPM/distribution specific patches
 
@@ -1173,6 +1172,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Jul 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.7.f20
+- moved to xz compression of sources
+- updated 2.1 tarball
+
 * Fri Jun 28 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.6.f20
 - updated java-1.7.0-openjdk-ppc-zero-hotspot.patch to pass without loose patching
 
