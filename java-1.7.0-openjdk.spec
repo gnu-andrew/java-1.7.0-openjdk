@@ -166,7 +166,7 @@ URL:      http://openjdk.java.net/
 # hg clone $REPO/jdk/ openjdk/jdk -r %{hg_tag}
 # hg clone $REPO/langtools/ openjdk/langtools -r %{hg_tag}
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
-# tar czf openjdk-icedtea-%{icedtea_version}.tar.gz openjdk
+# tar cJf openjdk-icedtea-%{icedtea_version}.tar.gz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
 
 # README file
