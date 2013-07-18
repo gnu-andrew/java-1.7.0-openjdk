@@ -93,7 +93,6 @@
 %else
 %global syslibdir       %{_libdir}
 %endif
-%global archname        %{name}.%{_arch}
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
@@ -102,26 +101,23 @@
 %global priority        1700%{buildver}
 %global javaver         1.7.0
 
-# Standard JPackage directories and symbolic links.
-# Make 64-bit JDKs just another alternative on 64-bit architectures.
-%global sdklnk          java-%{javaver}-%{origin}.%{_arch}
-%global jrelnk          jre-%{javaver}-%{origin}.%{_arch}
-%global sdkdir          %{name}-%{version}.%{_arch}
+%global sdkdir          %{uniquesuffix}
+%global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
 
 %global jredir          %{sdkdir}/jre
-%global sdkbindir       %{_jvmdir}/%{sdklnk}/bin
-%global jrebindir       %{_jvmdir}/%{jrelnk}/bin
+%global sdkbindir       %{_jvmdir}/%{sdkdir}/bin
+%global jrebindir       %{_jvmdir}/%{jredir}/bin
+%global jvmjardir       %{_jvmjardir}/%{uniquesuffix}
 
-%global jvmjardir       %{_jvmjardir}/%{name}-%{version}.%{_arch}
+%global fullversion     %{name}-%{version}-%{release}
 
-# The suffix for file names when we have to make them unique (from
-# other Java packages).
-%global uniquesuffix          %{name}
-%global uniquejavadocdir      %{name}
+%global uniquesuffix          %{fullversion}.%{_arch}
+#we can copy the javadoc to not arched dir, or made it not noarch
+%global uniquejavadocdir       %{fullversion}
 
 %ifarch %{jit_arches}
 # Where to install systemtap tapset (links)
-# We would like these to be in a package specific subdir,
+# We would	 like these to be in a package specific subdir,
 # but currently systemtap doesn't support that, so we have to
 # use the root tapset dir for now. To distinquish between 64
 # and 32 bit architectures we place the tapsets under the arch
@@ -137,7 +133,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.7%{?dist}
+Release: %{icedtea_version}.8%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -733,17 +729,15 @@ mkdir -p $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
   popd
 
   # Install JCE policy symlinks.
-  install -d -m 755 $RPM_BUILD_ROOT%{_jvmprivdir}/%{archname}/jce/vanilla
+  install -d -m 755 $RPM_BUILD_ROOT%{_jvmprivdir}/%{uniquesuffix}/jce/vanilla
 
-  # Install versionless symlinks.
+  # Install versioned symlinks.
   pushd $RPM_BUILD_ROOT%{_jvmdir}
     ln -sf %{jredir} %{jrelnk}
-    ln -sf %{sdkdir} %{sdklnk}
   popd
 
   pushd $RPM_BUILD_ROOT%{_jvmjardir}
     ln -sf %{sdkdir} %{jrelnk}
-    ln -sf %{sdkdir} %{sdklnk}
   popd
 
   # Remove javaws man page
@@ -908,12 +902,9 @@ update-desktop-database %{_datadir}/applications &> /dev/null || :
 exit 0
 
 %postun
-if [ $1 -eq 0 ]
-then
   alternatives --remove java %{jrebindir}/java
   alternatives --remove jre_%{origin} %{_jvmdir}/%{jrelnk}
   alternatives --remove jre_%{javaver} %{_jvmdir}/%{jrelnk}
-fi
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
@@ -931,8 +922,8 @@ exit 0
 ext=.gz
 alternatives \
   --install %{_bindir}/javac javac %{sdkbindir}/javac %{priority} \
-  --slave %{_jvmdir}/java java_sdk %{_jvmdir}/%{sdklnk} \
-  --slave %{_jvmjardir}/java java_sdk_exports %{_jvmjardir}/%{sdklnk} \
+  --slave %{_jvmdir}/java java_sdk %{_jvmdir}/%{sdkdir} \
+  --slave %{_jvmjardir}/java java_sdk_exports %{_jvmjardir}/%{sdkdir} \
   --slave %{_bindir}/appletviewer appletviewer %{sdkbindir}/appletviewer \
   --slave %{_bindir}/apt apt %{sdkbindir}/apt \
   --slave %{_bindir}/extcheck extcheck %{sdkbindir}/extcheck \
@@ -1021,25 +1012,22 @@ alternatives \
 
 alternatives \
   --install %{_jvmdir}/java-%{origin} \
-  java_sdk_%{origin} %{_jvmdir}/%{sdklnk} %{priority} \
+  java_sdk_%{origin} %{_jvmdir}/%{sdkdir} %{priority} \
   --slave %{_jvmjardir}/java-%{origin} \
-  java_sdk_%{origin}_exports %{_jvmjardir}/%{sdklnk}
+  java_sdk_%{origin}_exports %{_jvmjardir}/%{sdkdir}
 
 alternatives \
   --install %{_jvmdir}/java-%{javaver} \
-  java_sdk_%{javaver} %{_jvmdir}/%{sdklnk} %{priority} \
+  java_sdk_%{javaver} %{_jvmdir}/%{sdkdir} %{priority} \
   --slave %{_jvmjardir}/java-%{javaver} \
-  java_sdk_%{javaver}_exports %{_jvmjardir}/%{sdklnk}
+  java_sdk_%{javaver}_exports %{_jvmjardir}/%{sdkdir}
 
 exit 0
 
 %postun devel
-if [ $1 -eq 0 ]
-then
   alternatives --remove javac %{sdkbindir}/javac
-  alternatives --remove java_sdk_%{origin} %{_jvmdir}/%{sdklnk}
-  alternatives --remove java_sdk_%{javaver} %{_jvmdir}/%{sdklnk}
-fi
+  alternatives --remove java_sdk_%{origin} %{_jvmdir}/%{sdkdir}
+  alternatives --remove java_sdk_%{javaver} %{_jvmdir}/%{sdkdir}
 
 exit 0
 
@@ -1051,10 +1039,7 @@ alternatives \
 exit 0
 
 %postun javadoc
-if [ $1 -eq 0 ]
-then
   alternatives --remove javadocdir %{_javadocdir}/%{uniquejavadocdir}/api
-fi
 
 exit 0
 
@@ -1113,8 +1098,8 @@ exit 0
 %ifarch %{jit_arches}
 %{_jvmdir}/%{sdkdir}/tapset/*.stp
 %endif
-%{_jvmdir}/%{sdklnk}
-%{_jvmjardir}/%{sdklnk}
+%{_jvmdir}/%{sdkdir}
+%{_jvmjardir}/%{sdkdir}
 %{_datadir}/applications/*jconsole.desktop
 %{_datadir}/applications/*policytool.desktop
 %{_mandir}/man1/appletviewer-%{uniquesuffix}.1*
@@ -1173,6 +1158,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Jul 18 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.8.f19
+- moved to full-version directory
+- moved to add/remove alternatives process
+- sdklnk removed, and substitued by  sdkdir
+
 * Wed Jul 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.7.f19
 - moved to xz compression of sources
 - updated 2.1 tarball
