@@ -136,7 +136,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.8%{?dist}
+Release: %{icedtea_version}.9%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -856,7 +856,7 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
 
 # Note current status of alternatives
 MAKE_THIS_DEFAULT=0
-ID=%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}.*bin/java
+ID="%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}.*bin/java"
 COMMAND=java
 alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
 if [ $? -ne 0 ]; then
@@ -915,7 +915,7 @@ fi
 for X in %{origin} %{javaver} ; do
   # Note current status of alternatives
   MAKE_THIS_DEFAULT=0
-  ID=%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}
+  ID="%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}"
   COMMAND=jre_$X
   alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
   if [ $? -ne 0 ]; then
@@ -972,7 +972,7 @@ exit 0
 %post devel
 # Note current status of alternatives
 MAKE_THIS_DEFAULT=0
-ID=%{_jvmdir}/java-%{javaver}-%{origin}.*bin/javac
+ID="%{_jvmdir}/java-%{javaver}-%{origin}.*bin/javac"
 COMMAND=javac
 alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
 if [ $? -ne 0 ]; then
@@ -1090,7 +1090,7 @@ fi
 for X in %{origin} %{javaver} ; do
   # Note current status of alternatives
   MAKE_THIS_DEFAULT=0
-  ID=%{_jvmdir}/java-%{javaver}-%{origin}
+  ID="%{_jvmdir}/java-%{javaver}-%{origin}"
   COMMAND=java_sdk_$X
   alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
   if [ $? -ne 0 ]; then
@@ -1133,7 +1133,7 @@ exit 0
 
 %post javadoc
 MAKE_THIS_DEFAULT=0
-ID=%{_javadocdir}/java-%{javaver}-%{origin}.*/api
+ID="%{_javadocdir}/java-%{javaver}-%{origin}.*/api"
 COMMAND=javadocdir
 alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
 if [ $? -ne 0 ]; then
@@ -1283,6 +1283,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jul 19 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.9.f19
+- ID values are now in quotes
+
 * Fri Jul 19 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.8.f19
 - jrelnk is now just lnk, everything is pointing through jredir
 - all alternatives are celaned before new one is added
