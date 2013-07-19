@@ -93,7 +93,6 @@
 %else
 %global syslibdir       %{_libdir}
 %endif
-%global archname        %{name}.%{_arch}
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
@@ -102,22 +101,22 @@
 %global priority        1700%{buildver}
 %global javaver         1.7.0
 
-# Standard JPackage directories and symbolic links.
-# Make 64-bit JDKs just another alternative on 64-bit architectures.
-%global sdklnk          java-%{javaver}-%{origin}.%{_arch}
-%global jrelnk          jre-%{javaver}-%{origin}.%{_arch}
-%global sdkdir          %{name}-%{version}.%{_arch}
+%global sdkdir          %{uniquesuffix}
+%global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
 
 %global jredir          %{sdkdir}/jre
-%global sdkbindir       %{_jvmdir}/%{sdklnk}/bin
-%global jrebindir       %{_jvmdir}/%{jrelnk}/bin
+%global sdkbindir       %{_jvmdir}/%{sdkdir}/bin
+%global jrebindir       %{_jvmdir}/%{jredir}/bin
+%global jvmjardir       %{_jvmjardir}/%{uniquesuffix}
 
-%global jvmjardir       %{_jvmjardir}/%{name}-%{version}.%{_arch}
+%global fullversion     %{name}-%{version}-%{release}
 
-# The suffix for file names when we have to make them unique (from
-# other Java packages).
-%global uniquesuffix          %{name}
-%global uniquejavadocdir      %{name}
+%global uniquesuffix          %{fullversion}.%{_arch}
+#we can copy the javadoc to not arched dir, or made it not noarch
+%global uniquejavadocdir       %{fullversion}
+
+%global statuscheck		status is auto
+%global linkcheck		link currently points to
 
 %ifarch %{jit_arches}
 # Where to install systemtap tapset (links)
@@ -137,7 +136,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.7%{?dist}
+Release: %{icedtea_version}.8%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -732,17 +731,15 @@ mkdir -p $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
   popd
 
   # Install JCE policy symlinks.
-  install -d -m 755 $RPM_BUILD_ROOT%{_jvmprivdir}/%{archname}/jce/vanilla
+  install -d -m 755 $RPM_BUILD_ROOT%{_jvmprivdir}/%{uniquesuffix}/jce/vanilla
 
-  # Install versionless symlinks.
+  # Install versioned symlinks.
   pushd $RPM_BUILD_ROOT%{_jvmdir}
     ln -sf %{jredir} %{jrelnk}
-    ln -sf %{sdkdir} %{sdklnk}
   popd
 
   pushd $RPM_BUILD_ROOT%{_jvmjardir}
     ln -sf %{sdkdir} %{jrelnk}
-    ln -sf %{sdkdir} %{sdklnk}
   popd
 
   # Remove javaws man page
@@ -856,11 +853,32 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
 %{jrebindir}/java -Xshare:dump >/dev/null 2>/dev/null
 %endif
 
+# Note current status of alternatives
+MAKE_THIS_DEFAULT=0
+ID=%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}.*bin/java
+COMMAND=java
+alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
+if [ $? -ne 0 ]; then
+  alternatives --display $COMMAND | grep -q "%{linkcheck}"".*""$ID"
+  if [ $? -eq 0 ]; then
+    MAKE_THIS_DEFAULT=1
+  fi
+fi
+
+# Remove old alternatives
+for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
+  # Only grab what %{origin} installed
+  echo $alt | grep -q "$ID"
+  if [ $? -eq 0 ]; then
+    alternatives --remove $COMMAND $alt >& /dev/null || :
+   fi
+done
+
 ext=.gz
 alternatives \
   --install %{_bindir}/java java %{jrebindir}/java %{priority} \
-  --slave %{_jvmdir}/jre jre %{_jvmdir}/%{jrelnk} \
-  --slave %{_jvmjardir}/jre jre_exports %{_jvmjardir}/%{jrelnk} \
+  --slave %{_jvmdir}/jre jre %{_jvmdir}/%{jredir} \
+  --slave %{_jvmjardir}/jre jre_exports %{_jvmjardir}/%{jredir} \
   --slave %{_bindir}/keytool keytool %{jrebindir}/keytool \
   --slave %{_bindir}/orbd orbd %{jrebindir}/orbd \
   --slave %{_bindir}/pack200 pack200 %{jrebindir}/pack200 \
@@ -888,17 +906,44 @@ alternatives \
   --slave %{_mandir}/man1/unpack200.1$ext unpack200.1$ext \
   %{_mandir}/man1/unpack200-%{uniquesuffix}.1$ext
 
-alternatives \
-  --install %{_jvmdir}/jre-%{origin} \
-  jre_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
-  --slave %{_jvmjardir}/jre-%{origin} \
-  jre_%{origin}_exports %{_jvmjardir}/%{jrelnk}
+# Gracefully update to this one if needed
+if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+  alternatives --set $COMMAND %{jrebindir}/java
+fi
 
-alternatives \
-  --install %{_jvmdir}/jre-%{javaver} \
-  jre_%{javaver} %{_jvmdir}/%{jrelnk} %{priority} \
-  --slave %{_jvmjardir}/jre-%{javaver} \
-  jre_%{javaver}_exports %{_jvmjardir}/%{jrelnk}
+for X in %{origin} %{javaver} ; do
+  # Note current status of alternatives
+  MAKE_THIS_DEFAULT=0
+  ID=%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}
+  COMMAND=jre_$X
+  alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
+  if [ $? -ne 0 ]; then
+    alternatives --display $COMMAND | grep -q "%{linkcheck}"".*""$ID"
+    if [ $? -eq 0 ]; then
+      MAKE_THIS_DEFAULT=1
+    fi
+  fi
+
+  # Remove old alternatives
+  for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
+    # Only grab what %{origin} installed
+    echo $alt | grep -q "$ID"
+    if [ $? -eq 0 ]; then
+      alternatives --remove $COMMAND $alt >& /dev/null || :
+     fi
+  done
+
+  alternatives \
+    --install %{_jvmdir}/jre-"$X" \
+    jre_"$X" %{_jvmdir}/%{jredir} %{priority} \
+    --slave %{_jvmjardir}/jre-"$X" \
+    jre_"$X"_exports %{_jvmjardir}/%{jredir}
+
+  # Gracefully update to this one if needed
+  if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+    alternatives --set $COMMAND %{_jvmdir}/%{jredir}
+  fi
+done
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
@@ -907,12 +952,9 @@ update-desktop-database %{_datadir}/applications &> /dev/null || :
 exit 0
 
 %postun
-if [ $1 -eq 0 ]
-then
   alternatives --remove java %{jrebindir}/java
-  alternatives --remove jre_%{origin} %{_jvmdir}/%{jrelnk}
-  alternatives --remove jre_%{javaver} %{_jvmdir}/%{jrelnk}
-fi
+  alternatives --remove jre_%{origin} %{_jvmdir}/%{jredir}
+  alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
@@ -927,11 +969,32 @@ exit 0
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %post devel
+# Note current status of alternatives
+MAKE_THIS_DEFAULT=0
+ID=%{_jvmdir}/java-%{javaver}-%{origin}.*bin/javac
+COMMAND=javac
+alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
+if [ $? -ne 0 ]; then
+  alternatives --display $COMMAND | grep -q "%{linkcheck}"".*""$ID"
+  if [ $? -eq 0 ]; then
+    MAKE_THIS_DEFAULT=1
+  fi
+fi
+
+# Remove old alternatives
+for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
+  # Only grab what %{origin} installed
+  echo $alt | grep -q "$ID"
+  if [ $? -eq 0 ]; then
+    alternatives --remove $COMMAND $alt >& /dev/null || :
+   fi
+done
+
 ext=.gz
 alternatives \
   --install %{_bindir}/javac javac %{sdkbindir}/javac %{priority} \
-  --slave %{_jvmdir}/java java_sdk %{_jvmdir}/%{sdklnk} \
-  --slave %{_jvmjardir}/java java_sdk_exports %{_jvmjardir}/%{sdklnk} \
+  --slave %{_jvmdir}/java java_sdk %{_jvmdir}/%{sdkdir} \
+  --slave %{_jvmjardir}/java java_sdk_exports %{_jvmjardir}/%{sdkdir} \
   --slave %{_bindir}/appletviewer appletviewer %{sdkbindir}/appletviewer \
   --slave %{_bindir}/apt apt %{sdkbindir}/apt \
   --slave %{_bindir}/extcheck extcheck %{sdkbindir}/extcheck \
@@ -1018,42 +1081,89 @@ alternatives \
   --slave %{_mandir}/man1/xjc.1$ext xjc.1$ext \
   %{_mandir}/man1/xjc-%{uniquesuffix}.1$ext
 
-alternatives \
-  --install %{_jvmdir}/java-%{origin} \
-  java_sdk_%{origin} %{_jvmdir}/%{sdklnk} %{priority} \
-  --slave %{_jvmjardir}/java-%{origin} \
-  java_sdk_%{origin}_exports %{_jvmjardir}/%{sdklnk}
+# Gracefully update to this one if needed
+if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+  alternatives --set $COMMAND %{sdkbindir}/javac
+fi
 
-alternatives \
-  --install %{_jvmdir}/java-%{javaver} \
-  java_sdk_%{javaver} %{_jvmdir}/%{sdklnk} %{priority} \
-  --slave %{_jvmjardir}/java-%{javaver} \
-  java_sdk_%{javaver}_exports %{_jvmjardir}/%{sdklnk}
+for X in %{origin} %{javaver} ; do
+  # Note current status of alternatives
+  MAKE_THIS_DEFAULT=0
+  ID=%{_jvmdir}/java-%{javaver}-%{origin}
+  COMMAND=java_sdk_$X
+  alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
+  if [ $? -ne 0 ]; then
+    alternatives --display $COMMAND | grep -q "%{linkcheck}"".*""$ID"
+    if [ $? -eq 0 ]; then
+      MAKE_THIS_DEFAULT=1
+    fi
+  fi
+
+  # Remove old alternatives
+  for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
+    # Only grab what %{origin} installed
+    echo $alt | grep -q "$ID"
+    if [ $? -eq 0 ]; then
+      alternatives --remove $COMMAND $alt >& /dev/null || :
+     fi
+  done
+
+  alternatives \
+    --install %{_jvmdir}/java-"$X" \
+    java_sdk_"$X" %{_jvmdir}/%{sdkdir} %{priority} \
+    --slave %{_jvmjardir}/java-"$X" \
+    java_sdk_"$X"_exports %{_jvmjardir}/%{sdkdir}
+
+  # Gracefully update to this one if needed
+  if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+    alternatives --set $COMMAND %{_jvmdir}/%{sdkdir}
+  fi
+done
+
 
 exit 0
 
 %postun devel
-if [ $1 -eq 0 ]
-then
   alternatives --remove javac %{sdkbindir}/javac
-  alternatives --remove java_sdk_%{origin} %{_jvmdir}/%{sdklnk}
-  alternatives --remove java_sdk_%{javaver} %{_jvmdir}/%{sdklnk}
-fi
+  alternatives --remove java_sdk_%{origin} %{_jvmdir}/%{sdkdir}
+  alternatives --remove java_sdk_%{javaver} %{_jvmdir}/%{sdkdir}
 
 exit 0
 
 %post javadoc
+MAKE_THIS_DEFAULT=0
+ID=%{_javadocdir}/java-%{javaver}-%{origin}.*/api
+COMMAND=javadocdir
+alternatives --display $COMMAND | head -n 1 | grep -q "%{statuscheck}"
+if [ $? -ne 0 ]; then
+  alternatives --display $COMMAND | grep -q "%{linkcheck}"".*""$ID"
+  if [ $? -eq 0 ]; then
+    MAKE_THIS_DEFAULT=1
+  fi
+fi
+
+# Remove old alternatives
+for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
+  # Only grab what %{origin} installed
+  echo $alt | grep -q "$ID"
+  if [ $? -eq 0 ]; then
+    alternatives --remove $COMMAND $alt >& /dev/null || :
+   fi
+done
+
 alternatives \
   --install %{_javadocdir}/java javadocdir %{_javadocdir}/%{uniquejavadocdir}/api \
   %{priority}
 
+# Gracefully update to this one if needed
+if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+  alternatives --set $COMMAND %{_javadocdir}/%{uniquejavadocdir}/api
+fi
+
 exit 0
 
 %postun javadoc
-if [ $1 -eq 0 ]
-then
   alternatives --remove javadocdir %{_javadocdir}/%{uniquejavadocdir}/api
-fi
 
 exit 0
 
@@ -1112,8 +1222,8 @@ exit 0
 %ifarch %{jit_arches}
 %{_jvmdir}/%{sdkdir}/tapset/*.stp
 %endif
-%{_jvmdir}/%{sdklnk}
-%{_jvmjardir}/%{sdklnk}
+%{_jvmdir}/%{sdkdir}
+%{_jvmjardir}/%{sdkdir}
 %{_datadir}/applications/*jconsole.desktop
 %{_datadir}/applications/*policytool.desktop
 %{_mandir}/man1/appletviewer-%{uniquesuffix}.1*
@@ -1172,6 +1282,14 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jul 19 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.8.f20
+- jrelnk is now just lnk, everything is pointing through jredir
+- all alternatives are celaned before new one is added
+- alternatives are removed after uninstall
+- moved to full-version directory
+- moved to add/remove alternatives process
+- sdklnk removed, and substitued by  sdkdir
+
 * Wed Jul 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.7.f20
 - moved to xz compression of sources
 - updated 2.1 tarball
