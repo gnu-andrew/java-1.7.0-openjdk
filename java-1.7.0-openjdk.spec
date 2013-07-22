@@ -136,7 +136,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.9%{?dist}
+Release: %{icedtea_version}.10%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1222,7 +1222,6 @@ exit 0
 %ifarch %{jit_arches}
 %{_jvmdir}/%{sdkdir}/tapset/*.stp
 %endif
-%{_jvmdir}/%{sdkdir}
 %{_jvmjardir}/%{sdkdir}
 %{_datadir}/applications/*jconsole.desktop
 %{_datadir}/applications/*policytool.desktop
@@ -1282,6 +1281,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Jul 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.10.f20
+- removed _jvmdir/sdkdir from devel files
+
 * Fri Jul 19 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.9.f20
 - ID values are now in quotes
 
