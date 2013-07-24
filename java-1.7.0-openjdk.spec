@@ -860,7 +860,7 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
   popd
 
 #f19 only backward compatibility link
-ln -s  %{_jvmdir}/java-%{javaver}-%{origin} %{_jvmdir}/java-%{javaver}-%{origin}.%{_arch}
+ln -s  $RPM_BUILD_ROOT/%{_jvmdir}/java-%{javaver}-%{origin} %{_jvmdir}/java-%{javaver}-%{origin}.%{_arch}
 
 
 # FIXME: identical binaries are copied, not linked. This needs to be
