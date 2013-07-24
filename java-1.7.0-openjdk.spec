@@ -4,12 +4,10 @@
 %global icedtea_version 2.3.10
 %global hg_tag icedtea-{icedtea_version}
 
-%global multilib_arches ppc64 sparc64 x86_64
+%global aarch64			aarch64 arm64 armv8
+%global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
+%global jit_arches		%{ix86} x86_64 sparcv9 sparc64
 
-%global jit_arches %{ix86} x86_64 sparcv9 sparc64
-#this is even greater restriction then jit archs. It should have all modifications 
-#as jit_archs, and as addition also using 2.1 source
-%global arm_arches armv5tel armv7hl
 
 %ifarch x86_64
 %global archbuild amd64
@@ -20,7 +18,7 @@
 %global archinstall ppc
 %global archdef PPC
 %endif
-%ifarch ppc64
+%ifarch %{power64}
 %global archbuild ppc64
 %global archinstall ppc64
 %global archdef PPC
@@ -47,6 +45,11 @@
 %global archbuild arm
 %global archinstall arm
 %global archdef ARM
+%endif
+%ifarch %{aarch64}
+%global archbuild aarch64
+%global archinstall aarch64
+%global archdef AARCH64
 %endif
 # 32 bit sparc, optimized for v9
 %ifarch sparcv9
@@ -136,7 +139,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.10%{?dist}
+Release: %{icedtea_version}.11%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -267,6 +270,8 @@ Patch401: 657854-openjdk7.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
+
+Patch404: aarch64.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -315,7 +320,7 @@ BuildRequires: libffi-devel >= 3.0.10
 BuildRequires: openssl
 # execstack build requirement.
 # no prelink on ARM yet
-%ifnarch %{arm}
+%ifnarch %{arm} %{aarch64}
 BuildRequires: prelink
 %endif
 %ifarch %{jit_arches}
@@ -441,7 +446,7 @@ Although working pretty fine, there are known issues with accessibility on, so d
 
 %prep
 
-%ifarch %{arm_arches}
+%ifarch %{arm}
 %global source_num 100
 %else
 %global source_num 0
@@ -453,7 +458,7 @@ cp %{SOURCE2} .
 # OpenJDK patches
 
 # Rhino patch -- one default version (100) and one specific to 2.1.1 (400)
-%ifarch %{arm_arches}
+%ifarch %{arm}
 %patch400
 %else
 %patch100
@@ -540,13 +545,22 @@ tar xzf %{SOURCE7}
 %patch403
 %endif
 
+%ifarch %{aarch64}
+%patch404 -p1
+%endif
+
 %build
 # How many cpu's do we have?
+%ifarch aarch64
+# temporary until real hardware lands
+export NUM_PROC=1
+%else
 export NUM_PROC=`/usr/bin/getconf _NPROCESSORS_ONLN 2> /dev/null || :`
 export NUM_PROC=${NUM_PROC:-1}
+%endif
 
 # Build IcedTea and OpenJDK.
-%ifarch s390x sparc64 alpha ppc64
+%ifarch s390x sparc64 alpha %{power64} %{aarch64}
 export ARCH_DATA_MODEL=64
 %endif
 %ifarch alpha
@@ -607,7 +621,7 @@ make \
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
-%ifarch %{arm_arches}
+%ifarch %{arm}
   JDK_UPDATE_VERSION="03" \
 %else
   JDK_UPDATE_VERSION=`printf "%02d" %{buildver}` \
@@ -945,6 +959,9 @@ for X in %{origin} %{javaver} ; do
   fi
 done
 
+update-alternatives --install %{_jvmdir}/jre-%{javaver}_%{origin} jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
+--slave %{_jvmjardir}/jre-%{javaver}       jre_%{javaver}_%{origin}_exports      %{_jvmjardir}/%{uniquesuffix}
+
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
@@ -1120,6 +1137,9 @@ for X in %{origin} %{javaver} ; do
   fi
 done
 
+update-alternatives --install %{_jvmdir}/java-%{javaver}-%{origin} java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdklnk} %{priority} \
+--slave %{_jvmjardir}/java-%{javaver}-%{origin}       java_sdk_%{javaver}_%{origin}_exports      %{_jvmjardir}/%{sdkdir}
+
 
 exit 0
 
@@ -1236,7 +1256,7 @@ exit 0
 %{_mandir}/man1/javah-%{uniquesuffix}.1*
 %{_mandir}/man1/javap-%{uniquesuffix}.1*
 %{_mandir}/man1/jconsole-%{uniquesuffix}.1*
-%ifnarch %{arm_arches} # Only in u4+
+%ifnarch %{arm} # Only in u4+
 %{_mandir}/man1/jcmd-%{uniquesuffix}.1*
 %endif
 %{_mandir}/man1/jdb-%{uniquesuffix}.1*
@@ -1281,6 +1301,15 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Jul 24 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.11.f20
+- added support for aarch64
+ - aarch64 variable to be used in conditions where necessary
+ - patch404  aarch64.patch (author: msalter) to add aarch64 support to makefiles
+ (needs more tweeking!)
+- added new alternatives jre-1.7.0-openjd and java-1.7.0-openjdk to keep
+ backward comaptibility after uniquesuffix and add/remove alternatives approach
+- removed arm_arches variable in favour of standart arm one
+
 * Mon Jul 22 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.10.f20
 - removed _jvmdir/sdkdir from devel files
 

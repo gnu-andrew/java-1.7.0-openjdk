@@ -1,0 +1,133 @@
+diff --git a/openjdk/corba/make/common/shared/Defs-java.gmk b/openjdk/corba/make/common/shared/Defs-java.gmk
+index f45a7a1..45ebe30 100644
+--- a/openjdk/corba/make/common/shared/Defs-java.gmk
++++ b/openjdk/corba/make/common/shared/Defs-java.gmk
+@@ -81,7 +81,7 @@ JAVAC_JVM_FLAGS =
+ ifeq ($(ARCH_DATA_MODEL), 32)
+   JAVAC_JVM_FLAGS    += -J-XX:ThreadStackSize=768
+ else
+-  JAVAC_JVM_FLAGS    += -J-XX:ThreadStackSize=1536
++  JAVAC_JVM_FLAGS    += -J-XX:ThreadStackSize=1664
+ endif
+ JAVAC_JVM_FLAGS    += $(JAVA_TOOLS_FLAGS:%=-J%)
+ 
+diff --git a/openjdk/hotspot/src/os/linux/vm/os_linux.cpp b/openjdk/hotspot/src/os/linux/vm/os_linux.cpp
+index 2cb95f0..730dfd3 100644
+--- a/openjdk/hotspot/src/os/linux/vm/os_linux.cpp
++++ b/openjdk/hotspot/src/os/linux/vm/os_linux.cpp
+@@ -387,7 +387,7 @@ void os::init_system_properties_values() {
+  *        ...
+  *        7: The default directories, normally /lib and /usr/lib.
+  */
+-#if defined(AMD64) || defined(_LP64) && (defined(SPARC) || defined(PPC) || defined(S390))
++#if defined(AMD64) || defined(_LP64) && (defined(SPARC) || defined(PPC) || defined(S390) || defined(AARCH64))
+ #define DEFAULT_LIBPATH "/usr/lib64:/lib64:/lib:/usr/lib"
+ #else
+ #define DEFAULT_LIBPATH "/lib:/usr/lib"
+@@ -5393,8 +5393,12 @@ int os::fork_and_exec(char* cmd) {
+   // separate process to execve. Make a direct syscall to fork process.
+   // On IA64 there's no fork syscall, we have to use fork() and hope for
+   // the best...
++#ifdef __aarch64__
++  pid_t pid = vfork();
++#else
+   pid_t pid = NOT_IA64(syscall(__NR_fork);)
+               IA64_ONLY(fork();)
++#endif
+ 
+   if (pid < 0) {
+     // fork failed
+diff --git a/openjdk/hotspot/src/os_cpu/linux_zero/vm/globals_linux_zero.hpp b/openjdk/hotspot/src/os_cpu/linux_zero/vm/globals_linux_zero.hpp
+index d952cb7..57c4900 100644
+--- a/openjdk/hotspot/src/os_cpu/linux_zero/vm/globals_linux_zero.hpp
++++ b/openjdk/hotspot/src/os_cpu/linux_zero/vm/globals_linux_zero.hpp
+@@ -32,7 +32,7 @@
+ //
+ 
+ define_pd_global(bool,  DontYieldALot,           false);
+-define_pd_global(intx,  ThreadStackSize,         1536);
++define_pd_global(intx,  ThreadStackSize,         1664);
+ #ifdef _LP64
+ define_pd_global(intx,  VMThreadStackSize,       1024);
+ #else
+diff --git a/openjdk/hotspot/src/share/vm/utilities/macros.hpp b/openjdk/hotspot/src/share/vm/utilities/macros.hpp
+index 5950702..2db1334 100644
+--- a/openjdk/hotspot/src/share/vm/utilities/macros.hpp
++++ b/openjdk/hotspot/src/share/vm/utilities/macros.hpp
+@@ -260,6 +260,14 @@
+ #define NOT_ARM(code) code
+ #endif
+ 
++#ifdef AARCH64
++#define AARCH64_ONLY(code) code
++#define NOT_AARCH64(code)
++#else
++#define AARCH64_ONLY(code)
++#define NOT_AARCH64(code) code
++#endif
++
+ #ifdef JAVASE_EMBEDDED
+ #define EMBEDDED_ONLY(code) code
+ #define NOT_EMBEDDED(code)
+diff --git a/openjdk/jdk/make/common/shared/Defs-java.gmk b/openjdk/jdk/make/common/shared/Defs-java.gmk
+index 986bea6..d0b5659 100644
+--- a/openjdk/jdk/make/common/shared/Defs-java.gmk
++++ b/openjdk/jdk/make/common/shared/Defs-java.gmk
+@@ -90,7 +90,7 @@ JAVAC_JVM_FLAGS =
+ ifeq ($(ARCH_DATA_MODEL), 32)
+   JAVAC_JVM_FLAGS    += -J-XX:ThreadStackSize=768
+ else
+-  JAVAC_JVM_FLAGS    += -J-XX:ThreadStackSize=1536
++  JAVAC_JVM_FLAGS    += -J-XX:ThreadStackSize=1664
+ endif
+ JAVAC_JVM_FLAGS    += $(JAVA_TOOLS_FLAGS:%=-J%)
+ 
+diff --git a/openjdk/jdk/make/javax/sound/SoundDefs.gmk b/openjdk/jdk/make/javax/sound/SoundDefs.gmk
+index 0bb59e1..16650ea 100644
+--- a/openjdk/jdk/make/javax/sound/SoundDefs.gmk
++++ b/openjdk/jdk/make/javax/sound/SoundDefs.gmk
+@@ -118,6 +118,10 @@ else
+     CPPFLAGS += -DX_ARCH=X_SPARCV9
+   endif # ARCH sparcv9
+ 
++  ifeq ($(ARCH), aarch64)
++    CPPFLAGS += -DX_ARCH=X_AARCH64
++  endif # ARCH aarch64
++
+   ifeq ($(ARCH), amd64)
+     CPPFLAGS += -DX_ARCH=X_AMD64
+   endif # ARCH amd64
+diff --git a/openjdk/jdk/make/jdk_generic_profile.sh b/openjdk/jdk/make/jdk_generic_profile.sh
+index 7e0b8de..d27129f 100644
+--- a/openjdk/jdk/make/jdk_generic_profile.sh
++++ b/openjdk/jdk/make/jdk_generic_profile.sh
+@@ -269,7 +269,7 @@ if [ "${ZERO_BUILD}" = true ] ; then
+     i386|ppc|s390|sparc|arm|sh)
+       ARCH_DATA_MODEL=32
+       ;;
+-    amd64|ppc64|s390x|sparcv9|ia64|alpha)
++    amd64|ppc64|s390x|sparcv9|ia64|alpha|aarch64)
+       ARCH_DATA_MODEL=64
+       ;;
+     *)
+@@ -280,7 +280,7 @@ if [ "${ZERO_BUILD}" = true ] ; then
+ 
+   # ZERO_ENDIANNESS is the endianness of the processor
+   case "${ZERO_LIBARCH}" in
+-    i386|amd64|ia64)
++    i386|amd64|ia64|aarch64)
+       ZERO_ENDIANNESS=little
+       ;;
+     ppc*|s390*|sparc*|alpha)
+diff --git a/openjdk/jdk/src/share/native/com/sun/media/sound/SoundDefs.h b/openjdk/jdk/src/share/native/com/sun/media/sound/SoundDefs.h
+index ff6729f..9c5ddf6 100644
+--- a/openjdk/jdk/src/share/native/com/sun/media/sound/SoundDefs.h
++++ b/openjdk/jdk/src/share/native/com/sun/media/sound/SoundDefs.h
+@@ -51,6 +51,7 @@
+ #define X_S390          14
+ #define X_S390X         15
+ #define X_SH            16
++#define X_AARCH64       17
+ 
+ // **********************************
+ // Make sure you set X_PLATFORM and X_ARCH defines correctly.
