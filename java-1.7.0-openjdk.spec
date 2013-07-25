@@ -610,6 +610,7 @@ make \
   ZERO_ENDIANNESS="big" \
 %else
   ZERO_ENDIANNESS="little" \
+  ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
 %endif
 %endif
   %{debugbuild}
@@ -1276,6 +1277,7 @@ exit 0
 - added removal of new jre-1.7.0-openjdk and java-1.7.0-openjdk alternatives
 - removed patch 400, rhino for 2.1 and other 2.1 conditional stuff
 - removed patch 103 arm-fixes.patch
+- added ZERO_ARCHFLAG="-D_LITTLE_ENDIAN"  for zero (arm) builds
 
 * Wed Jul 24 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.11.f19
 - added support for aarch64
