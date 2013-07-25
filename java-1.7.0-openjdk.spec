@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.10
+%global icedtea_version 2.3.11
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -139,7 +139,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.11%{?dist}
+Release: %{icedtea_version}.0%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -197,12 +197,6 @@ Source9: pulseaudio.tar.gz
 # Removed libraries that we link instead
 Source10: remove-intree-libraries.sh
 
-# For primary arches, build latest and for arm, use hs22
-# http://icedtea.classpath.org/hg/release/icedtea7-forest-2.1
-# hg tag: icedtea-2.1.9
-# otherwise procedure same as for main tarball
-Source100:  openjdk-icedtea-2.1.9.tar.xz
-
 # RPM/distribution specific patches
 
 # Allow TCK to pass with access bridge wired in
@@ -234,9 +228,6 @@ Patch102: %{name}-size_t.patch
 # Disable system LCMS as 2.3.10 security release have fixes for it
 Patch500:  %{name}-disable-system-lcms.patch
 
-# Patches for Arm
-Patch103: %{name}-arm-fixes.patch
-
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
@@ -257,13 +248,6 @@ Patch300: pulse-soundproperties.patch
 # SystemTap support
 # Workaround for RH613824
 Patch302: systemtap.patch
-
-#
-# IcedTea 2.1.1/hs22 specific patches
-#
-
-# Rhino support
-Patch400: rhino-icedtea-2.1.1.patch
 
 #Workaround RH947731
 Patch401: 657854-openjdk7.patch
@@ -446,24 +430,12 @@ Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is s
 Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
 
 %prep
-
-%ifarch %{arm}
-%global source_num 100
-%else
-%global source_num 0
-%endif
-
-%setup -q -c -n %{uniquesuffix} -T -a %{source_num}
+%setup -q -c -n %{uniquesuffix} -T -a 0
 cp %{SOURCE2} .
 
 # OpenJDK patches
 
-# Rhino patch -- one default version (100) and one specific to 2.1.1 (400)
-%ifarch %{arm}
-%patch400
-%else
 %patch100
-%endif
 
 # pulseaudio support
 %if %{with_pulseaudio}
@@ -521,11 +493,6 @@ tar xzf %{SOURCE7}
 %ifarch s390 s390x
 %patch101
 %patch102
-%endif
-
-# Arm fixes
-%ifarch %{arm}
-%patch103
 %endif
 
 # Disable system LCMS2
@@ -622,11 +589,7 @@ make \
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
-%ifarch %{arm}
-  JDK_UPDATE_VERSION="03" \
-%else
   JDK_UPDATE_VERSION=`printf "%02d" %{buildver}` \
-%endif
   MILESTONE="fcs" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
   STATIC_CXX="false" \
@@ -976,6 +939,7 @@ exit 0
   alternatives --remove java %{jrebindir}/java
   alternatives --remove jre_%{origin} %{_jvmdir}/%{jredir}
   alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
+  alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
@@ -1141,7 +1105,7 @@ for X in %{origin} %{javaver} ; do
   fi
 done
 
-update-alternatives --install %{_jvmdir}/java-%{javaver}-%{origin} java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdklnk} %{priority} \
+update-alternatives --install %{_jvmdir}/java-%{javaver}-%{origin} java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdkdir} %{priority} \
 --slave %{_jvmjardir}/java-%{javaver}-%{origin}       java_sdk_%{javaver}_%{origin}_exports      %{_jvmjardir}/%{sdkdir}
 
 
@@ -1151,6 +1115,7 @@ exit 0
   alternatives --remove javac %{sdkbindir}/javac
   alternatives --remove java_sdk_%{origin} %{_jvmdir}/%{sdkdir}
   alternatives --remove java_sdk_%{javaver} %{_jvmdir}/%{sdkdir}
+  alternatives --remove java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdkdir}
 
 exit 0
 
@@ -1261,9 +1226,7 @@ exit 0
 %{_mandir}/man1/javah-%{uniquesuffix}.1*
 %{_mandir}/man1/javap-%{uniquesuffix}.1*
 %{_mandir}/man1/jconsole-%{uniquesuffix}.1*
-%ifnarch %{arm} # Only in u4+
 %{_mandir}/man1/jcmd-%{uniquesuffix}.1*
-%endif
 %{_mandir}/man1/jdb-%{uniquesuffix}.1*
 %{_mandir}/man1/jhat-%{uniquesuffix}.1*
 %{_mandir}/man1/jinfo-%{uniquesuffix}.1*
@@ -1306,6 +1269,14 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Jul 25 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.11.0.f19
+- finally merged arm and main source tarballs
+- updated to icedtea 2.3.11
+ - http://blog.fuseyism.com/index.php/2013/07/25/icedtea-2-3-11-released/
+- added removal of new jre-1.7.0-openjdk and java-1.7.0-openjdk alternatives
+- removed patch 400, rhino for 2.1 and other 2.1 conditional stuff
+- removed patch 103 arm-fixes.patch
+
 * Wed Jul 24 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.11.f19
 - added support for aarch64
  - aarch64 variable to be used in conditions where necessary
