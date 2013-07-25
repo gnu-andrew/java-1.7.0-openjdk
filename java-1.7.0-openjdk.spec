@@ -256,6 +256,8 @@ Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
 
 Patch404: aarch64.patch
+
+Patch405: zeroCtmp.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -515,6 +517,8 @@ tar xzf %{SOURCE7}
 %ifarch %{aarch64}
 %patch404 -p1
 %endif
+
+%patch405 -p1
 
 %build
 # How many cpu's do we have?
@@ -1273,6 +1277,7 @@ exit 0
 - removed patch 400, rhino for 2.1 and other 2.1 conditional stuff
 - removed patch 103 arm-fixes.patch
 - added ZERO_ARCHFLAG="-D_LITTLE_ENDIAN"  for zero (arm) builds
+- temporary added already upstreamed patch 405 zeroCtmp.patch
 
 * Wed Jul 24 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.11.f20
 - added support for aarch64
