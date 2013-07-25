@@ -225,6 +225,9 @@ Patch100: rhino.patch
 Patch101: %{name}-bitmap.patch
 Patch102: %{name}-size_t.patch
 
+# Patches for Arm
+Patch103: %{name}-arm-fixes.patch
+
 # Disable system LCMS as 2.3.10 security release have fixes for it
 Patch500:  %{name}-disable-system-lcms.patch
 
@@ -492,6 +495,11 @@ tar xzf %{SOURCE7}
 %ifarch s390 s390x
 %patch101
 %patch102
+%endif
+
+# Arm fixes
+%ifarch %{arm}
+%patch103
 %endif
 
 # Disable system LCMS2
