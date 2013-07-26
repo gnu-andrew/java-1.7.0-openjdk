@@ -139,7 +139,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -856,7 +856,7 @@ ext=.gz
 alternatives \
   --install %{_bindir}/java java %{jrebindir}/java %{priority} \
   --slave %{_jvmdir}/jre jre %{_jvmdir}/%{jredir} \
-  --slave %{_jvmjardir}/jre jre_exports %{_jvmjardir}/%{jredir} \
+  --slave %{_jvmjardir}/jre jre_exports %{jvmjardir} \
   --slave %{_bindir}/keytool keytool %{jrebindir}/keytool \
   --slave %{_bindir}/orbd orbd %{jrebindir}/orbd \
   --slave %{_bindir}/pack200 pack200 %{jrebindir}/pack200 \
@@ -915,7 +915,7 @@ for X in %{origin} %{javaver} ; do
     --install %{_jvmdir}/jre-"$X" \
     jre_"$X" %{_jvmdir}/%{jredir} %{priority} \
     --slave %{_jvmjardir}/jre-"$X" \
-    jre_"$X"_exports %{_jvmjardir}/%{jredir}
+    jre_"$X"_exports %{jvmjardir}
 
   # Gracefully update to this one if needed
   if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
@@ -924,7 +924,7 @@ for X in %{origin} %{javaver} ; do
 done
 
 update-alternatives --install %{_jvmdir}/jre-%{javaver}_%{origin} jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
---slave %{_jvmjardir}/jre-%{javaver}       jre_%{javaver}_%{origin}_exports      %{_jvmjardir}/%{uniquesuffix}
+--slave %{_jvmjardir}/jre-%{javaver}       jre_%{javaver}_%{origin}_exports      %{jvmjardir}
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
@@ -1265,6 +1265,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jul 26 2013 Orion Poplawski <orion@cora.nwra.com> - 1.7.0.25-2.3.13.2.fc20
+- Fix broken jre_exports alternatives links
+
 * Fri Jul 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.12.1.f20
 - refreshed icedtea7-forest 2.3.12
 
