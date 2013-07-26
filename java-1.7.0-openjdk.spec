@@ -258,6 +258,7 @@ Patch403: PStack-808293.patch
 Patch404: aarch64.patch
 
 Patch405: zeroCtmp.patch
+Patch406: remove_CC_COMP.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -519,6 +520,7 @@ tar xzf %{SOURCE7}
 %endif
 
 %patch405 -p1
+%patch406
 
 %build
 # How many cpu's do we have?
@@ -1278,6 +1280,7 @@ exit 0
 - removed patch 103 arm-fixes.patch
 - added ZERO_ARCHFLAG="-D_LITTLE_ENDIAN"  for zero (arm) builds
 - temporary added already upstreamed patch 405 zeroCtmp.patch
+- revert upstream changes: remove_CC_COMP.patch
 
 * Wed Jul 24 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.10.11.f20
 - added support for aarch64
