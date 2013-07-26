@@ -1,11 +1,11 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.11
+%global icedtea_version 2.3.12
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
-%global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
+%global multilib_arches 	%{power64} sparc64 x86_64 %{aarch64}
 %global jit_arches		%{ix86} x86_64 sparcv9 sparc64
 
 
@@ -256,9 +256,6 @@ Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
 
 Patch404: aarch64.patch
-
-Patch405: zeroCtmp.patch
-Patch406: remove_CC_COMP.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -518,9 +515,6 @@ tar xzf %{SOURCE7}
 %ifarch %{aarch64}
 %patch404 -p1
 %endif
-
-%patch405 -p1
-%patch406
 
 %build
 # How many cpu's do we have?
@@ -1271,6 +1265,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jul 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.12.0.f20
+- bumped to icedtea7-forest 2.3.12
+- removed upstreamed patch 405 zeroCtmp.patch
+- removed upstreamed patch 406 remove_CC_COMP.patch
+
 * Thu Jul 25 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.11.0.f20
 - finally merged arm and main source tarballs
 - updated to icedtea 2.3.11
