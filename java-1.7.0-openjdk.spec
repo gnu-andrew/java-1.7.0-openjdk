@@ -1266,7 +1266,7 @@ exit 0
 
 %changelog
 * Fri Jul 26 2013 Orion Poplawski <orion@cora.nwra.com> - 1.7.0.25-2.3.13.2.fc20
-- Fix broken jre_exports alternatives links
+- Fix broken jre_exports alternatives links (bug #979128)
 
 * Fri Jul 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.12.1.f20
 - refreshed icedtea7-forest 2.3.12
