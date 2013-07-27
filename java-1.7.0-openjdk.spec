@@ -5,9 +5,11 @@
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
-%global multilib_arches 	%{power64} sparc64 x86_64 %{aarch64}
+%global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
 %global jit_arches		%{ix86} x86_64 sparcv9 sparc64
 
+#if 0, then links are set forcibly, if 1 ten only if status is auto
+%global graceful_links 1
 
 %ifarch x86_64
 %global archbuild amd64
@@ -139,7 +141,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.2%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -884,10 +886,14 @@ alternatives \
   --slave %{_mandir}/man1/unpack200.1$ext unpack200.1$ext \
   %{_mandir}/man1/unpack200-%{uniquesuffix}.1$ext
 
+%if %{graceful_links}
 # Gracefully update to this one if needed
 if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+%endif
   alternatives --set $COMMAND %{jrebindir}/java
+%if %{graceful_links}
 fi
+%endif
 
 for X in %{origin} %{javaver} ; do
   # Note current status of alternatives
@@ -916,11 +922,14 @@ for X in %{origin} %{javaver} ; do
     jre_"$X" %{_jvmdir}/%{jredir} %{priority} \
     --slave %{_jvmjardir}/jre-"$X" \
     jre_"$X"_exports %{jvmjardir}
-
+%if %{graceful_links}
   # Gracefully update to this one if needed
   if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+%endif
     alternatives --set $COMMAND %{_jvmdir}/%{jredir}
+%if %{graceful_links}
   fi
+%endif
 done
 
 update-alternatives --install %{_jvmdir}/jre-%{javaver}_%{origin} jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
@@ -1064,9 +1073,13 @@ alternatives \
   %{_mandir}/man1/xjc-%{uniquesuffix}.1$ext
 
 # Gracefully update to this one if needed
+%if %{graceful_links}
 if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+%endif
   alternatives --set $COMMAND %{sdkbindir}/javac
+%if %{graceful_links}
 fi
+%endif
 
 for X in %{origin} %{javaver} ; do
   # Note current status of alternatives
@@ -1096,10 +1109,14 @@ for X in %{origin} %{javaver} ; do
     --slave %{_jvmjardir}/java-"$X" \
     java_sdk_"$X"_exports %{_jvmjardir}/%{sdkdir}
 
+%if %{graceful_links}
   # Gracefully update to this one if needed
   if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+%endif
     alternatives --set $COMMAND %{_jvmdir}/%{sdkdir}
+%if %{graceful_links}
   fi
+%endif
 done
 
 update-alternatives --install %{_jvmdir}/java-%{javaver}-%{origin} java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdkdir} %{priority} \
@@ -1141,10 +1158,14 @@ alternatives \
   --install %{_javadocdir}/java javadocdir %{_javadocdir}/%{uniquejavadocdir}/api \
   %{priority}
 
+%if %{graceful_links}
 # Gracefully update to this one if needed
 if [ $MAKE_THIS_DEFAULT -eq 1 ]; then
+%endif
   alternatives --set $COMMAND %{_javadocdir}/%{uniquejavadocdir}/api
+%if %{graceful_links}
 fi
+%endif
 
 exit 0
 
@@ -1265,7 +1286,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
-* Fri Jul 26 2013 Orion Poplawski <orion@cora.nwra.com> - 1.7.0.25-2.3.13.2.fc20
+* Sat Jul 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.12.3.f20
+- setting of alternatives moved into conditional block controlled by graceful_links
+- added graceful_links, set to enabled (1)
+
+* Fri Jul 26 2013 Orion Poplawski <orion@cora.nwra.com> - 1.7.0.25-2.3.12.2.fc20
 - Fix broken jre_exports alternatives links (bug #979128)
 
 * Fri Jul 26 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.12.1.f20
