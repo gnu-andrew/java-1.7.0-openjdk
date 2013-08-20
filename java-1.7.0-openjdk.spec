@@ -141,7 +141,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -259,6 +259,12 @@ Patch403: PStack-808293.patch
 
 Patch404: aarch64.patch
 # End of tmp patches
+
+# Temporary backport of patches already upstream but not in a icedtea7-2.3.X release yet
+Patch501: callerclass-01.patch
+Patch502: callerclass-02.patch
+Patch503: callerclass-03.patch
+Patch504: callerclass-04.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -517,6 +523,11 @@ tar xzf %{SOURCE7}
 %ifarch %{aarch64}
 %patch404 -p1
 %endif
+
+%patch501
+%patch502
+%patch503
+%patch504
 
 %build
 # How many cpu's do we have?
@@ -1286,6 +1297,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Tue Aug 20 2013 Omair Majid <omajid@redhat.com> -1.7.0.25-2.3.12.4c20
+- Backport getCallerClass-related patches from upstream that are not in a release yet
+
 * Sat Jul 27 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.3.12.3.f20
 - setting of alternatives moved into conditional block controlled by graceful_links
 - added graceful_links, set to enabled (1)
