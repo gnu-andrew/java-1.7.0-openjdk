@@ -1,8 +1,9 @@
---- openjdk/jdk/make/jdk_generic_profile.sh.sav
-+++ openjdk/jdk/make/jdk_generic_profile.sh
-@@ -399,23 +399,6 @@
- export ZLIB_CFLAGS
- export ZLIB_LIBS
+diff -up openjdk/jdk/make/jdk_generic_profile.sh.sav openjdk/jdk/make/jdk_generic_profile.sh
+--- openjdk/jdk/make/jdk_generic_profile.sh.sav	2012-03-19 17:33:21.147566973 -0400
++++ openjdk/jdk/make/jdk_generic_profile.sh	2012-03-19 17:33:32.877391463 -0400
+@@ -381,24 +381,6 @@ if [ "${ZERO_BUILD}" = true ] ; then
+   fi
+ fi
  
 -# Export variables for system LCMS
 -# LCMS_CFLAGS and LCMS_LIBS tell the compiler how to compile and
@@ -21,14 +22,15 @@
 -fi
 -export LCMS_CFLAGS
 -export LCMS_LIBS
- 
- # Export variables for system jpeg
- # JPEG_CFLAGS and JPEG_LIBS tell the compiler how to compile and
-@@ -463,7 +446,6 @@
- fi
+-
+ # Export variables for system zlib
+ # ZLIB_CFLAGS and ZLIB_LIBS tell the compiler how to compile and
+ # link against zlib
+@@ -452,7 +434,6 @@ fi
+ export GIF_LIBS
  
  # IcedTea defaults; use system libraries
 -export USE_SYSTEM_LCMS=true
- export SYSTEM_ZLIB=true
+ export USE_SYSTEM_ZLIB=true
  export USE_SYSTEM_JPEG=true
  export USE_SYSTEM_PNG=true

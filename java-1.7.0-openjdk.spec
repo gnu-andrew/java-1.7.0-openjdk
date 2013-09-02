@@ -1,7 +1,8 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.12
+%global icedtea_version 2.4.1
+%global icedtea_version_arm32 2.3.12
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -141,7 +142,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -161,7 +162,7 @@ URL:      http://openjdk.java.net/
 #head
 #REPO=http://icedtea.classpath.org/hg/icedtea7-forest
 #current release
-#REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.3
+#REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.4
 # hg clone $REPO/ openjdk -r %{hg_tag}
 # hg clone $REPO/corba/ openjdk/corba -r %{hg_tag}
 # hg clone $REPO/hotspot/ openjdk/hotspot -r %{hg_tag}
@@ -170,8 +171,11 @@ URL:      http://openjdk.java.net/
 # hg clone $REPO/jdk/ openjdk/jdk -r %{hg_tag}
 # hg clone $REPO/langtools/ openjdk/langtools -r %{hg_tag}
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
+# sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
+#for arm is used icedtea7-forest-2.3 and fsg.sh is not run
+Source100:  openjdk-icedtea-%{icedtea_version_arm32}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -206,6 +210,7 @@ Patch1:   java-1.7.0-openjdk-java-access-bridge-tck.patch
 
 # Disable access to access-bridge packages by untrusted apps
 Patch3:   java-1.7.0-openjdk-java-access-bridge-security.patch
+Patch30:   java-1.7.0-openjdk-java-access-bridge-security-2.3.patch
 
 # Ignore AWTError when assistive technologies are loaded 
 Patch4:   java-1.7.0-openjdk-accessible-toolkit.patch
@@ -222,6 +227,7 @@ Patch6:   %{name}-debuginfo.patch
 
 # Add rhino support
 Patch100: rhino.patch
+Patch1000: rhino-2.3.patch
 
 # Type fixing for s390
 Patch101: %{name}-bitmap.patch
@@ -229,12 +235,16 @@ Patch102: %{name}-size_t.patch
 
 # Disable system LCMS as 2.3.10 security release have fixes for it
 Patch500:  %{name}-disable-system-lcms.patch
+Patch5000:  %{name}-disable-system-lcms-2.3.patch
 
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
+
+#do not used disbaled ecc
+Patch112: %{name}-doNotUseDisabledEcc.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -255,6 +265,7 @@ Patch302: systemtap.patch
 Patch401: 657854-openjdk7.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
+Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
 
 Patch404: aarch64.patch
@@ -437,12 +448,19 @@ Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is s
 Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
 
 %prep
+%ifarch %{arm}
+%setup -q -c -n %{uniquesuffix} -T -a 100
+%else
 %setup -q -c -n %{uniquesuffix} -T -a 0
+%endif
 cp %{SOURCE2} .
 
 # OpenJDK patches
-
+%ifarch %{arm}
+%patch1000
+%else
 %patch100
+%endif
 
 # pulseaudio support
 %if %{with_pulseaudio}
@@ -451,7 +469,9 @@ cp %{SOURCE2} .
 
 # Add systemtap patches if enabled
 %if %{with_systemtap}
+%ifarch %{arm}
 %patch302
+%endif
 %endif
 
 # Remove libraries that are linked
@@ -488,7 +508,11 @@ tar xzf %{SOURCE9}
 # Extract desktop files
 tar xzf %{SOURCE7}
 
+%ifarch %{arm}
+%patch30
+%else
 %patch3
+%endif
 %patch4
 
 %if %{debug}
@@ -503,7 +527,11 @@ tar xzf %{SOURCE7}
 %endif
 
 # Disable system LCMS2
+%ifarch %{arm}
+%patch5000
+%else
 %patch500
+%endif
 
 %patch106
 %patch200
@@ -514,9 +542,16 @@ tar xzf %{SOURCE7}
 %patch105
 %endif
 
+%ifarch %{arm}
 %patch401
+%endif
+
 %ifarch %{jit_arches}
+%ifarch %{arm}
+%patch4020
+%else
 %patch402
+%endif
 %patch403
 %endif
 
@@ -524,10 +559,14 @@ tar xzf %{SOURCE7}
 %patch404 -p1
 %endif
 
+%ifarch %{arm}
 %patch501
 %patch502
 %patch503
 %patch504
+%else
+%patch112
+%endif
 
 %build
 # How many cpu's do we have?
@@ -598,6 +637,10 @@ source jdk/make/jdk_generic_profile.sh
 umask $oldumask
 
 make \
+%ifnarch %{arm}
+  DISABLE_INTREE_EC=true \
+  UNLIMITED_CRYPTO=true \
+%endif
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
@@ -1198,6 +1241,10 @@ exit 0
 %{jvmjardir}
 %dir %{_jvmdir}/%{jredir}/lib/security
 %{_jvmdir}/%{jredir}/lib/security/cacerts
+%ifnarch %{arm}
+%config(noreplace) %{_jvmdir}/%{jredir}/lib/security/US_export_policy.jar
+%config(noreplace) %{_jvmdir}/%{jredir}/lib/security/local_policy.jar
+%endif
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.policy
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.security
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/logging.properties
@@ -1297,6 +1344,30 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Sep 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.1.f20
+- updated to icedtea 2.4
+ - added java-1.7.0-openjdk-doNotUseDisabledEcc.patch (2.4 only)
+ - added new file fsg.sh - to celan up sources
+ - adapted  aarch64.patch
+ - adapted  gstackbounds.patch
+ - adapted  java-1.7.0-openjdk-disable-system-lcms.patch
+ - adapted  java-1.7.0-openjdk-java-access-bridge-security.patch
+ - adapted  java-1.7.0-openjdk-ppc-zero-hotspot.patch
+ - adapted  java-1.7.0-openjdk-size_t.patch
+ - adapted  java-1.7.0-openjdk.spec
+ - adapted  rhino.patch
+- arm32 is still using icedtea 2.3. Duplicated patches are:
+ - Patch30:   java-1.7.0-openjdk-java-access-bridge-security-2.3.patch
+ - Patch1000: rhino-2.3.patch
+ - Patch4020: gstackbounds-2.3.patch
+ - Patch5000: java-1.7.0-openjdk-disable-system-lcms-2.3.patch
+ - kept for 2.3 657854-openjdk7.patch
+ - kept for 2.3 callerclass-01.patch
+ - kept for 2.3 callerclass-02.patch
+ - kept for 2.3 callerclass-03.patch
+ - kept for 2.3 callerclass-04.patch
+ - kept for 2.3 systemtap.patch
+
 * Tue Aug 20 2013 Omair Majid <omajid@redhat.com> -1.7.0.25-2.3.12.4c20
 - Backport getCallerClass-related patches from upstream that are not in a release yet
 
