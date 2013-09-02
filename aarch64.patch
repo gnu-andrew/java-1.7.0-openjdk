@@ -114,8 +114,8 @@ index 7e0b8de..d27129f 100644
  
    # ZERO_ENDIANNESS is the endianness of the processor
    case "${ZERO_LIBARCH}" in
--    i386|amd64|ia64|arm)
-+    i386|amd64|ia64|arm|aarch64)
+-    i386|amd64|ia64)
++    i386|amd64|ia64|aarch64)
        ZERO_ENDIANNESS=little
        ;;
      ppc*|s390*|sparc*|alpha)

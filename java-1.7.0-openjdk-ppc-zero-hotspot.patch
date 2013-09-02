@@ -15,4 +15,3 @@
  #endif // _LP64
  define_pd_global(intx,  CompilerThreadStackSize, 0);
  define_pd_global(uintx, JVMInvokeMethodSlack,    8192);
-

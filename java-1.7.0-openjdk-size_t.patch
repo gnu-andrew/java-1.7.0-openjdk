@@ -46,34 +46,34 @@ diff -up openjdk/hotspot/src/share/vm/gc_implementation/concurrentMarkSweep/comp
 diff -up openjdk/hotspot/src/share/vm/gc_implementation/g1/concurrentMark.cpp.sav openjdk/hotspot/src/share/vm/gc_implementation/g1/concurrentMark.cpp
 --- openjdk/hotspot/src/share/vm/gc_implementation/g1/concurrentMark.cpp.sav	2012-02-14 16:11:12.000000000 -0500
 +++ openjdk/hotspot/src/share/vm/gc_implementation/g1/concurrentMark.cpp	2012-03-09 16:30:30.426921691 -0500
-@@ -543,7 +543,7 @@
- #endif // _MSC_VER
- 
- uint ConcurrentMark::scale_parallel_threads(uint n_par_threads) {
--  return MAX2((n_par_threads + 2) / 4, 1U);
-+  return MAX2((size_t)((n_par_threads + 2) / 4), (size_t)1);
- }
- 
- ConcurrentMark::ConcurrentMark(ReservedSpace rs,
-@@ -571,7 +571,7 @@
+@@ -481,7 +481,7 @@ ConcurrentMark::ConcurrentMark(ReservedS
    _regionStack(),
    // _finger set in set_non_marking_state
  
--  _max_task_num(MAX2((uint)ParallelGCThreads, 1U)),
+-  _max_task_num(MAX2(ParallelGCThreads, (size_t)1)),
 +  _max_task_num(MAX2((size_t)ParallelGCThreads, (size_t)1)),
    // _active_tasks set in set_non_marking_state
    // _tasks set inside the constructor
    _task_queues(new CMTaskQueueSet((int) _max_task_num)),
-@@ -1318,7 +1318,7 @@
-   assert(parallel_marking_threads() <= max_parallel_marking_threads(),
-     "Maximum number of marking threads exceeded");
+@@ -586,7 +586,7 @@ ConcurrentMark::ConcurrentMark(ReservedS
+       _sleep_factor             = sleep_factor;
+       _marking_task_overhead    = marking_task_overhead;
+     } else {
+-      _parallel_marking_threads = MAX2((ParallelGCThreads + 2) / 4, (size_t)1);
++      _parallel_marking_threads = MAX2((size_t)((ParallelGCThreads + 2) / 4), (size_t)1);
+       _sleep_factor             = 0.0;
+       _marking_task_overhead    = 1.0;
+     }
+@@ -1116,7 +1116,7 @@ void ConcurrentMark::markFromRoots() {
  
--  uint active_workers = MAX2(1U, parallel_marking_threads());
+   _restart_for_overflow = false;
+ 
+-  size_t active_workers = MAX2((size_t) 1, parallel_marking_threads());
 +  size_t active_workers = MAX2((size_t) 1, (size_t)parallel_marking_threads());
- 
-   // Parallel task terminator is set in "set_phase()"
+   force_overflow_conc()->init();
    set_phase(active_workers, true /* concurrent */);
-@@ -4515,7 +4515,7 @@
+ 
+@@ -3689,7 +3689,7 @@ void CMTask::drain_local_queue(bool part
    // of things to do) or totally (at the very end).
    size_t target_size;
    if (partially) {
@@ -82,11 +82,11 @@ diff -up openjdk/hotspot/src/share/vm/gc_implementation/g1/concurrentMark.cpp.sa
    } else {
      target_size = 0;
    }
-@@ -5438,7 +5438,7 @@
+@@ -4604,7 +4604,7 @@ size_t G1PrintRegionLivenessInfoClosure:
    // The > 0 check is to deal with the prev and next live bytes which
    // could be 0.
    if (*hum_bytes > 0) {
--    bytes = MIN2(HeapRegion::GrainBytes, *hum_bytes);
+-    bytes = MIN2((size_t) HeapRegion::GrainBytes, *hum_bytes);
 +    bytes = MIN2((size_t) HeapRegion::GrainBytes, (size_t)*hum_bytes);
      *hum_bytes -= bytes;
    }

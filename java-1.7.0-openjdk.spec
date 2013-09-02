@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.3.12
+%global icedtea_version 2.4.1
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -141,7 +141,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -161,7 +161,7 @@ URL:      http://openjdk.java.net/
 #head
 #REPO=http://icedtea.classpath.org/hg/icedtea7-forest
 #current release
-#REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.3
+#REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.4
 # hg clone $REPO/ openjdk -r %{hg_tag}
 # hg clone $REPO/corba/ openjdk/corba -r %{hg_tag}
 # hg clone $REPO/hotspot/ openjdk/hotspot -r %{hg_tag}
@@ -170,6 +170,7 @@ URL:      http://openjdk.java.net/
 # hg clone $REPO/jdk/ openjdk/jdk -r %{hg_tag}
 # hg clone $REPO/langtools/ openjdk/langtools -r %{hg_tag}
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
+# sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
 
@@ -236,6 +237,9 @@ Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
 
+#do not used disbaled ecc
+Patch112: %{name}-doNotUseDisabledEcc.patch
+
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
 
@@ -247,24 +251,12 @@ Patch200: abrt_friendly_hs_log_jdk7.patch
 # mixer
 Patch300: pulse-soundproperties.patch
 
-# SystemTap support
-# Workaround for RH613824
-Patch302: systemtap.patch
-
-#Workaround RH947731
-Patch401: 657854-openjdk7.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
 
 Patch404: aarch64.patch
 # End of tmp patches
-
-# Temporary backport of patches already upstream but not in a icedtea7-2.3.X release yet
-Patch501: callerclass-01.patch
-Patch502: callerclass-02.patch
-Patch503: callerclass-03.patch
-Patch504: callerclass-04.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -442,7 +434,6 @@ Although working pretty fine, there are known issues with accessibility on, so d
 cp %{SOURCE2} .
 
 # OpenJDK patches
-
 %patch100
 
 # pulseaudio support
@@ -452,7 +443,6 @@ cp %{SOURCE2} .
 
 # Add systemtap patches if enabled
 %if %{with_systemtap}
-%patch302
 %endif
 
 # Remove libraries that are linked
@@ -515,7 +505,6 @@ tar xzf %{SOURCE7}
 %patch105
 %endif
 
-%patch401
 %ifarch %{jit_arches}
 %patch402
 %patch403
@@ -525,10 +514,7 @@ tar xzf %{SOURCE7}
 %patch404 -p1
 %endif
 
-%patch501
-%patch502
-%patch503
-%patch504
+%patch112
 
 %build
 # How many cpu's do we have?
@@ -599,6 +585,8 @@ source jdk/make/jdk_generic_profile.sh
 umask $oldumask
 
 make \
+  DISABLE_INTREE_EC=true \
+  UNLIMITED_CRYPTO=true \
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
@@ -1202,6 +1190,8 @@ exit 0
 %{jvmjardir}
 %dir %{_jvmdir}/%{jredir}/lib/security
 %{_jvmdir}/%{jredir}/lib/security/cacerts
+%config(noreplace) %{_jvmdir}/%{jredir}/lib/security/US_export_policy.jar
+%config(noreplace) %{_jvmdir}/%{jredir}/lib/security/local_policy.jar
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.policy
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.security
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/logging.properties
@@ -1302,6 +1292,26 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Sep 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.1.f19
+- updated to icedtea 2.4
+ - deleted usptreamed 657854-openjdk7.patch
+ - deleted usptreamed callerclass-01.patch
+ - deleted usptreamed callerclass-02.patch
+ - deleted usptreamed callerclass-03.patch
+ - deleted usptreamed callerclass-04.patch
+ - deleted usptreamed systemtap.patch
+ - added new file fsg.sh - to celan up sources
+ - adapted  aarch64.patch
+ - adapted  gstackbounds.patch
+ - adapted  java-1.7.0-openjdk-disable-system-lcms.patch
+ - adapted  java-1.7.0-openjdk-java-access-bridge-security.patch
+ - adapted  java-1.7.0-openjdk-ppc-zero-hotspot.patch
+ - adapted  java-1.7.0-openjdk-size_t.patch
+ - adapted  java-1.7.0-openjdk.spec
+ - adapted  rhino.patch
+- temporarily disabled arm32 support (will need duplicated source tarball based
+  on 3.x or deeper fix for 2.4.x)
+
 * Tue Aug 20 2013 Omair Majid <omajid@redhat.com> -1.7.0.25-2.3.12.4c20
 - Backport getCallerClass-related patches from upstream that are not in a release yet
 
