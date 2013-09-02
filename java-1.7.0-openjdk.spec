@@ -1294,6 +1294,7 @@ exit 0
 %changelog
 * Mon Sep 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.1.f19
 - updated to icedtea 2.4
+ - added java-1.7.0-openjdk-doNotUseDisabledEcc.patch
  - deleted usptreamed 657854-openjdk7.patch
  - deleted usptreamed callerclass-01.patch
  - deleted usptreamed callerclass-02.patch
