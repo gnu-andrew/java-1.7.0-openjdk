@@ -280,6 +280,7 @@ BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
 BuildRequires: desktop-file-utils
 BuildRequires: giflib-devel
+BuildRequires: lcms2-devel >= 2.5
 BuildRequires: libX11-devel
 BuildRequires: libXi-devel
 BuildRequires: libXp-devel
@@ -328,6 +329,7 @@ BuildRequires: systemtap-sdt-devel
 %endif
 
 Requires: rhino
+Requires: lcms2 >= 2.5
 Requires: libjpeg = 6b
 Requires: fontconfig
 Requires: xorg-x11-fonts-Type1
