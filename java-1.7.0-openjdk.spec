@@ -101,7 +101,7 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        25
+%global buildver        31
 # Keep priority on 6digits in case buildver>9
 %global priority        1700%{buildver}
 %global javaver         1.7.0
@@ -141,7 +141,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -200,6 +200,9 @@ Source9: pulseaudio.tar.gz
 # Removed libraries that we link instead
 Source10: remove-intree-libraries.sh
 
+# Ensure we aren't using the limited crypto policy
+Source11: TestCryptoLevel.java
+
 # RPM/distribution specific patches
 
 # Allow TCK to pass with access bridge wired in
@@ -228,17 +231,11 @@ Patch100: rhino.patch
 Patch101: %{name}-bitmap.patch
 Patch102: %{name}-size_t.patch
 
-# Disable system LCMS as 2.3.10 security release have fixes for it
-Patch500:  %{name}-disable-system-lcms.patch
-
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
-
-#do not used disbaled ecc
-Patch112: %{name}-doNotUseDisabledEcc.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -265,6 +262,7 @@ BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
 BuildRequires: desktop-file-utils
 BuildRequires: giflib-devel
+BuildRequires: lcms2-devel >= 2.5
 BuildRequires: libX11-devel
 BuildRequires: libXi-devel
 BuildRequires: libXp-devel
@@ -314,6 +312,7 @@ BuildRequires: systemtap-sdt-devel
 %endif
 
 Requires: rhino
+Requires: lcms2 >= 2.5
 Requires: libjpeg = 6b
 Requires: fontconfig
 Requires: xorg-x11-fonts-Type1
@@ -493,9 +492,6 @@ tar xzf %{SOURCE7}
 %patch102
 %endif
 
-# Disable system LCMS2
-%patch500
-
 %patch106
 %patch200
 
@@ -513,8 +509,6 @@ tar xzf %{SOURCE7}
 %ifarch %{aarch64}
 %patch404 -p1
 %endif
-
-%patch112
 
 %build
 # How many cpu's do we have?
@@ -643,6 +637,11 @@ rm -f %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.properties.src
 rm -f %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.bfc
 rm -f %{buildoutputdir}/lib/fontconfig*.properties.src
 rm -f %{buildoutputdir}/lib/fontconfig*.bfc
+
+# Check unlimited policy has been used
+$JAVA_HOME/bin/javac -d . %{SOURCE11}
+$JAVA_HOME/bin/java TestCryptoLevel
+
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -1292,6 +1291,14 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f19
+- buildver bumbed to 31
+- switched back to system lcms2
+ - removed patch 500 java-1.7.0-openjdk-disable-system-lcms
+ - added requires for lcms2 > 2.5
+- removed unnecessary patch 112 java-1.7.0-openjdk-doNotUseDisabledEcc.patch
+- added and used after build source 11, TestCryptoLevel.java
+
 * Mon Sep 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.1.f19
 - updated to icedtea 2.4
  - added java-1.7.0-openjdk-doNotUseDisabledEcc.patch
