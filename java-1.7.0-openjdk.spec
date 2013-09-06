@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.1
+%global icedtea_version 2.4.2
 %global icedtea_version_arm32 2.3.12
 %global hg_tag icedtea-{icedtea_version}
 
@@ -102,7 +102,7 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        31
+%global buildver        60
 # Keep priority on 6digits in case buildver>9
 %global priority        1700%{buildver}
 %global javaver         1.7.0
@@ -142,7 +142,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.0%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -263,8 +263,6 @@ Patch401: 657854-openjdk7.patch
 Patch402: gstackbounds.patch
 Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
-
-Patch404: aarch64.patch
 # End of tmp patches
 
 # Temporary backport of patches already upstream but not in a icedtea7-2.3.X release yet
@@ -544,10 +542,6 @@ tar xzf %{SOURCE7}
 %patch402
 %endif
 %patch403
-%endif
-
-%ifarch %{aarch64}
-%patch404 -p1
 %endif
 
 %ifarch %{arm}
@@ -1343,6 +1337,13 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Sep 06 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.2.0.f20
+- updated to icedtea7-forest 2.4.2
+- removed upstreamed patch404  aarch64.patch
+- adapted patch104 java-1.7.0-openjdk-ppc-zero-jdk.patch
+- adapted patch105 java-1.7.0-openjdk-ppc-zero-hotspot.patch
+- buildver bumbed to 60
+
 * Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f20
 - buildver bumbed to 31 for not arm arch
 - switched back to system lcms2
