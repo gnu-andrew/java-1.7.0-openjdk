@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.1
+%global icedtea_version 2.4.2
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -101,7 +101,7 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global buildver        31
+%global buildver        60
 # Keep priority on 6digits in case buildver>9
 %global priority        1700%{buildver}
 %global javaver         1.7.0
@@ -141,7 +141,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.4%{?dist}
+Release: %{icedtea_version}.0%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -251,8 +251,6 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
-
-Patch404: aarch64.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -504,10 +502,6 @@ tar xzf %{SOURCE7}
 %ifarch %{jit_arches}
 %patch402
 %patch403
-%endif
-
-%ifarch %{aarch64}
-%patch404 -p1
 %endif
 
 %build
@@ -1291,6 +1285,13 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Sep 06 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.2.0.f19
+- updated to icedtea7-forest 2.4.2
+- removed upstreamed patch404  aarch64.patch
+- adapted patch104 java-1.7.0-openjdk-ppc-zero-jdk.patch
+- adapted patch105 java-1.7.0-openjdk-ppc-zero-hotspot.patch
+- buildver bumbed to 60
+
 * Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f19
 - buildver bumbed to 31
 - switched back to system lcms2
