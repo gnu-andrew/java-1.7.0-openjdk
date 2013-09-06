@@ -263,6 +263,7 @@ Patch401: 657854-openjdk7.patch
 Patch402: gstackbounds.patch
 Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
+Patch404: RH661505-toBeReverted.patch
 # End of tmp patches
 
 # Temporary backport of patches already upstream but not in a icedtea7-2.3.X release yet
@@ -549,6 +550,8 @@ tar xzf %{SOURCE7}
 %patch502
 %patch503
 %patch504
+%else
+%patch404 -R
 %endif
 
 %build
@@ -1342,6 +1345,7 @@ exit 0
 - removed upstreamed patch404  aarch64.patch
 - adapted patch104 java-1.7.0-openjdk-ppc-zero-jdk.patch
 - adapted patch105 java-1.7.0-openjdk-ppc-zero-hotspot.patch
+- added patch404 RH661505-toBeReverted.patch, to be *reverted* during prep for non arm32 tarball
 - buildver bumbed to 60
 
 * Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f20
