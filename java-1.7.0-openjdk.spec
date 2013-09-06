@@ -251,6 +251,7 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
+Patch404: RH661505-toBeReverted.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -503,6 +504,8 @@ tar xzf %{SOURCE7}
 %patch402
 %patch403
 %endif
+
+%patch404 -R
 
 %build
 # How many cpu's do we have?
@@ -1290,6 +1293,7 @@ exit 0
 - removed upstreamed patch404  aarch64.patch
 - adapted patch104 java-1.7.0-openjdk-ppc-zero-jdk.patch
 - adapted patch105 java-1.7.0-openjdk-ppc-zero-hotspot.patch
+- added patch404 RH661505-toBeReverted.patch, to be *reverted* during prep
 - buildver bumbed to 60
 
 * Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f19
