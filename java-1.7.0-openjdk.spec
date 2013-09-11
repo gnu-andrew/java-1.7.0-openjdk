@@ -101,9 +101,11 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
+%global updatever        40
+#Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
 %global buildver        60
-# Keep priority on 6digits in case buildver>9
-%global priority        1700%{buildver}
+# Keep priority on 6digits in case updatever>9
+%global priority        1700%{updatever}
 %global javaver         1.7.0
 
 %global sdkdir          %{uniquesuffix}
@@ -140,8 +142,8 @@
 %global __jar_repack 0
 
 Name:    java-%{javaver}-%{origin}
-Version: %{javaver}.%{buildver}
-Release: %{icedtea_version}.0%{?dist}
+Version: %{javaver}.60
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -187,8 +189,9 @@ Source5: class-rewriter.tar.gz
 # Systemtap tapsets. Zipped up to keep it small.
 Source6: systemtap-tapset.tar.gz
 
-# .desktop files. Zipped up to keep it small.
-Source7: desktop-files.tar.gz
+# .desktop files. 
+Source7:  policytool.desktop
+Source77: jconsole.desktop
 
 # nss configuration file
 Source8: nss.cfg
@@ -474,8 +477,6 @@ done
 tar xzf %{SOURCE9}
 %endif
 
-# Extract desktop files
-tar xzf %{SOURCE7}
 
 %patch3
 %patch4
@@ -580,8 +581,9 @@ make \
   UNLIMITED_CRYPTO=true \
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
-  DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch}" \
-  JDK_UPDATE_VERSION=`printf "%02d" %{buildver}` \
+  DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
+  JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
+  JDK_BUILD_NUMBER=b`printf "%02d" %{buildver}` \
   MILESTONE="fcs" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
   STATIC_CXX="false" \
@@ -758,11 +760,11 @@ done
 
 # Install desktop files.
 install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/{applications,pixmaps}
-for e in jconsole policytool ; do
-    sed -i "s/#ARCH#/%{_arch}-%{release}/g" $e.desktop
-    sed -i "s|/usr/bin|%{sdkbindir}/|g" $e.desktop
+for e in %{SOURCE7} %{SOURCE77} ; do
+    sed -i "s/#ARCH#/%{_arch}-%{release}/g" $e
+    sed -i "s|/usr/bin|%{sdkbindir}/|g" $e
     desktop-file-install --vendor=%{uniquesuffix} --mode=644 \
-        --dir=$RPM_BUILD_ROOT%{_datadir}/applications $e.desktop
+        --dir=$RPM_BUILD_ROOT%{_datadir}/applications $e
 done
 
 # Install /etc/.java/.systemPrefs/ directory
@@ -1288,6 +1290,14 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Sep 11 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.1.f19
+- buildver replaced by updatever
+- buildver reset to 60
+- updatever set to 40
+- added   JDK_BUILD_NUMBER=b`printf "%02d" buildver to make parameters
+- buildversion included in id
+- desktop icons extracted to text files
+
 * Fri Sep 06 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.2.0.f19
 - updated to icedtea7-forest 2.4.2
 - removed upstreamed patch404  aarch64.patch
