@@ -1371,7 +1371,7 @@ exit 0
 - added patch404 RH661505-toBeReverted.patch, to be *reverted* during prep for non arm32 tarball
 - buildver bumbed to 60
 
-* Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f20
+* Tue Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f20
 - buildver bumbed to 31 for not arm arch
 - switched back to system lcms2
  - removed patch 500 java-1.7.0-openjdk-disable-system-lcms
