@@ -144,7 +144,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -526,10 +526,10 @@ tar xzf %{SOURCE9}
 %patch101
 %ifnarch %{arm}
 %patch102
-%endif
 %patch110
 %patch111
 %patch112
+%endif
 
 %patch106
 %patch200
@@ -1354,6 +1354,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Sep 19 2013 Dan Horák <dan[at]danny.cz> - 1.7.0.40-2.4.2.4.f20
+- don't apply more patches on ARM
+
 * Thu Sep 19 2013 Dan Horák <dan[at]danny.cz> - 1.7.0.40-2.4.2.3.f20
 - don't apply the size_t patch on ARM
 
