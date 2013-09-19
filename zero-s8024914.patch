@@ -1,7 +1,18 @@
-diff -up openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp.s390 openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp
---- openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp.s390	2012-02-10 08:30:46.378435291 -0500
-+++ openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp	2012-02-10 08:47:27.478427892 -0500
-@@ -52,16 +52,16 @@ inline void BitMap::clear_bit(idx_t bit)
+# HG changeset patch
+# User tschatzl
+# Date 1379412251 -7200
+#      Tue Sep 17 12:04:11 2013 +0200
+# Node ID c39d06e6c10d9b6ae8feab2eb872f0be91b08d4f
+# Parent  af221c82682c974e06cc78b24808262d9ffc5af2
+8024914: Swapped usage of idx_t and bm_word_t types in bitMap.inline.hpp
+Summary: Incorrect usage of idx_t where bm_word_t is appropriate.
+Reviewed-by: tschatzl, brutisso
+Contributed-by: Dan Horak <dhorak@redhat.com>
+
+diff --git a/src/share/vm/utilities/bitMap.inline.hpp b/src/share/vm/utilities/bitMap.inline.hpp
+--- openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp
++++ openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp
+@@ -52,16 +52,16 @@
  
  inline bool BitMap::par_set_bit(idx_t bit) {
    verify_index(bit);
@@ -23,7 +34,7 @@ diff -up openjdk/hotspot/src/share/vm/utilities/bitMap.inline.hpp.s390 openjdk/h
                                                        (volatile void*) addr,
                                                        (void*) old_val);
      if (cur_val == old_val) {
-@@ -73,16 +73,16 @@ inline bool BitMap::par_set_bit(idx_t bi
+@@ -73,16 +73,16 @@
  
  inline bool BitMap::par_clear_bit(idx_t bit) {
    verify_index(bit);

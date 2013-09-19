@@ -144,7 +144,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -236,14 +236,19 @@ Patch100: rhino.patch
 Patch1000: rhino-2.3.patch
 
 # Type fixing for s390
-Patch101: %{name}-bitmap.patch
-Patch102: %{name}-size_t.patch
+Patch101: zero-s8024914.patch
+Patch102: zero-size_t.patch
 
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
+
+# Zero fixes
+Patch110: zero-entry_frame_call_wrapper.patch
+Patch111: zero-zero_build.patch
+Patch112: zero-gcdrainstacktargetsize.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -518,10 +523,11 @@ tar xzf %{SOURCE9}
 %endif
 
 # Type fixes for s390
-%ifarch s390 s390x
 %patch101
 %patch102
-%endif
+%patch110
+%patch111
+%patch112
 
 %patch106
 %patch200
@@ -617,6 +623,9 @@ export ALT_BOOTDIR="$JDK_TO_BUILD_WITH"
 oldumask=`umask`
 
 # Set generic profile
+%ifnarch %{jit_arches}
+export ZERO_BUILD=true
+%endif
 source jdk/make/jdk_generic_profile.sh
 
 # Restore old umask
@@ -1343,6 +1352,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Sep 19 2013 Dan Horák <dan[at]danny.cz> - 1.7.0.40-2.4.2.2.f20
+- fix build on zero arches (Andrew Hughes <gnu.andrew@redhat.com)
+
 * Wed Sep 11 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.1.f20
 - buildver replaced by updatever
 - buildver reset to 60
