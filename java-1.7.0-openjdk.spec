@@ -143,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.2%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -493,7 +493,9 @@ tar xzf %{SOURCE9}
 
 # Type fixes for s390
 %patch101
+%ifnarch %{arm}
 %patch102
+%endif
 %patch110
 %patch111
 %patch112
@@ -1299,6 +1301,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Sep 19 2013 Dan Horák <dan[at]danny.cz> - 1.7.0.40-2.4.2.3.f19
+- don't apply the size_t patch on ARM
+
 * Thu Sep 19 2013 Dan Horák <dan[at]danny.cz> - 1.7.0.40-2.4.2.2.f19
 - fix build on zero arches (Andrew Hughes <gnu.andrew@redhat.com)
 
