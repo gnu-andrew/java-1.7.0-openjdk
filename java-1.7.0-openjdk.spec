@@ -143,7 +143,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.5%{?dist}
+Release: %{icedtea_version}.6%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1229,7 +1229,6 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
 %{_sysconfdir}/.java/
 %{_sysconfdir}/.java/.systemPrefs
-%{_jvmdir}/java-%{javaver}-%{origin}.%{_arch}
 
 
 %files devel
@@ -1285,6 +1284,7 @@ exit 0
 %ifarch %{jit_arches}
 %{tapsetroot}
 %endif
+%{_jvmdir}/java-%{javaver}-%{origin}.%{_arch}
 
 %files demo -f %{name}-demo.files
 %defattr(-,root,root,-)
@@ -1306,6 +1306,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Tue Oct 01 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.6.f19
+- backward comaptibility java-1.7.0-openjdk.arch symlink moved to devel where it belongs
+
 * Tue Sep 24 2013 Omair Majid <omajid@rehdat.com> - 1.7.0.40-2.4.2.5.f19
 - Fix paths in tapsets for non x86_64 archs
 - Allow tapsets to use client jvm on i386
