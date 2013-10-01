@@ -203,6 +203,10 @@ Source9: pulseaudio.tar.gz
 # Removed libraries that we link instead
 Source10: remove-intree-libraries.sh
 
+#http://icedtea.classpath.org/hg/icedtea7/file/933d082ec889/fsg.sh
+# file to clean tarball, should be ketp updated as possible
+Source1111: fsg.sh
+
 # Ensure we aren't using the limited crypto policy
 Source11: TestCryptoLevel.java
 
