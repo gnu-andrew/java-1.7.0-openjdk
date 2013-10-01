@@ -208,6 +208,10 @@ Source9: pulseaudio.tar.gz
 # Removed libraries that we link instead
 Source10: remove-intree-libraries.sh
 
+#http://icedtea.classpath.org/hg/icedtea7/file/933d082ec889/fsg.sh
+# file to clean tarball, should be ketp updated as possible
+Source1111: fsg.sh
+
 # Ensure we aren't using the limited crypto policy
 Source11: TestCryptoLevel.java
 
@@ -250,9 +254,9 @@ Patch105: %{name}-ppc-zero-hotspot.patch
 Patch106: %{name}-freetype-check-fix.patch
 
 # Zero fixes
-Patch110: zero-entry_frame_call_wrapper.patch
-Patch111: zero-zero_build.patch
-Patch112: zero-gcdrainstacktargetsize.patch
+Patch1100: zero-entry_frame_call_wrapper.patch
+Patch1110: zero-zero_build.patch
+Patch1120: zero-gcdrainstacktargetsize.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -537,9 +541,9 @@ tar xzf %{SOURCE9}
 %patch101
 %ifnarch %{arm}
 %patch102
-%patch110
-%patch111
-%patch112
+%patch1100
+%patch1110
+%patch1120
 %endif
 
 %patch106
