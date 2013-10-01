@@ -241,9 +241,9 @@ Patch105: %{name}-ppc-zero-hotspot.patch
 Patch106: %{name}-freetype-check-fix.patch
 
 # Zero fixes
-Patch110: zero-entry_frame_call_wrapper.patch
-Patch111: zero-zero_build.patch
-Patch112: zero-gcdrainstacktargetsize.patch
+Patch1100: zero-entry_frame_call_wrapper.patch
+Patch1110: zero-zero_build.patch
+Patch1120: zero-gcdrainstacktargetsize.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -500,9 +500,9 @@ tar xzf %{SOURCE9}
 %patch101
 %ifnarch %{arm}
 %patch102
-%patch110
-%patch111
-%patch112
+%patch1100
+%patch1110
+%patch1120
 %endif
 
 %patch106
