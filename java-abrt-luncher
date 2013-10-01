@@ -1,0 +1,2 @@
+#!/bin/bash
+exec -a java @JAVA_PATH@ -agentpath:@LIB_DIR@=abrt=on "$@" 

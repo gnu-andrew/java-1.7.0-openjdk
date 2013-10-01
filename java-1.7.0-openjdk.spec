@@ -93,6 +93,8 @@
 
 # Hard-code libdir on 64-bit architectures to make the 64-bit JDK
 # simply be another alternative.
+%global LIBDIR       %{_libdir}
+#backuped original one
 %ifarch %{multilib_arches}
 %global syslibdir       %{_prefix}/lib64
 %global _libdir         %{_prefix}/lib
@@ -144,7 +146,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.5%{?dist}
+Release: %{icedtea_version}.6%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -208,6 +210,8 @@ Source10: remove-intree-libraries.sh
 
 # Ensure we aren't using the limited crypto policy
 Source11: TestCryptoLevel.java
+
+Source13: java-abrt-luncher
 
 # RPM/distribution specific patches
 
@@ -282,6 +286,7 @@ Patch504: callerclass-04.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
+BuildRequires: abrt-java-connector%{?_isa}
 BuildRequires: gcc-c++
 BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
@@ -335,6 +340,7 @@ BuildRequires: prelink
 BuildRequires: systemtap-sdt-devel
 %endif
 
+Requires: abrt-java-connector%{?_isa}
 Requires: rhino
 Requires: lcms2 >= 2.5
 Requires: libjpeg = 6b
@@ -686,6 +692,11 @@ chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
 %endif
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
+
+# Install java-abrt-luncher
+mv  $JAVA_HOME/jre/bin/java $JAVA_HOME/jre/bin/java-abrt
+cat %{SOURCE13} | sed -e s:@JAVA_PATH@:%{_jvmdir}/%{jredir}/bin/java-abrt:g -e s:@LIB_DIR@:%{LIBDIR}/libabrt-java-connector.so:g >  $JAVA_HOME/jre/bin/java
+chmod 755 $JAVA_HOME/jre/bin/java
 
 # Build pulseaudio and install it to JDK build location
 %if %{with_pulseaudio}
@@ -1359,6 +1370,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Tue Oct 01 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.6.f20
+- added java-abrt connector
+
 * Tue Sep 24 2013 Omair Majid <omajid@rehdat.com> - 1.7.0.40-2.4.2.5.f20
 - Fix paths in tapsets for non x86_64 archs
 - Allow tapsets to use client jvm on i386
