@@ -146,7 +146,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.7%{?dist}
+Release: %{icedtea_version}.8%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -192,6 +192,7 @@ Source2:  README.src
 Source5: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
+# last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
 Source6: systemtap-tapset.tar.gz
 
 # .desktop files. 
@@ -1385,6 +1386,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Oct 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.8.f20
+- updated tapset to current head
+
 * Wed Oct 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.7.f20
 - fixed incorrect  _jvmdir/jre-javaver_origin to  _jvmdir/jre-javaver-origin link
 
