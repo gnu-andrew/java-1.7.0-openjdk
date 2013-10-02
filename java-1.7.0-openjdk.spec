@@ -290,7 +290,7 @@ Patch504: callerclass-04.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
-BuildRequires: abrt-java-connector%{?_isa}
+BuildRequires: abrt-java-connector
 BuildRequires: gcc-c++
 BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
