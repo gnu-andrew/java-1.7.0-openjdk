@@ -92,6 +92,8 @@
 
 # Hard-code libdir on 64-bit architectures to make the 64-bit JDK
 # simply be another alternative.
+%global LIBDIR       %{_libdir}
+#backuped original one
 %ifarch %{multilib_arches}
 %global syslibdir       %{_prefix}/lib64
 %global _libdir         %{_prefix}/lib
@@ -143,7 +145,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.6%{?dist}
+Release: %{icedtea_version}.7%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -187,6 +189,7 @@ Source2:  README.src
 Source5: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
+# last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
 Source6: systemtap-tapset.tar.gz
 
 # .desktop files. 
@@ -953,7 +956,18 @@ for X in %{origin} %{javaver} ; do
 %endif
 done
 
-update-alternatives --install %{_jvmdir}/jre-%{javaver}_%{origin} jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
+
+#we need to remove old alternatives with "_" typo //should live to f21:(
+  ID="%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}"
+  COMMAND=jre_%{javaver}_%{origin}
+  for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
+    echo $alt | grep -q "$ID"
+    if [ $? -eq 0 ]; then
+      alternatives --remove $COMMAND $alt >& /dev/null || :
+     fi
+  done
+# the old should be removed, so we can install new :(
+update-alternatives --install %{_jvmdir}/jre-%{javaver}-%{origin} jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
 --slave %{_jvmjardir}/jre-%{javaver}       jre_%{javaver}_%{origin}_exports      %{jvmjardir}
 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
@@ -1310,6 +1324,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Oct 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.7.f19
+- updated tapset to current head
+- fixed incorrect  _jvmdir/jre-javaver_origin to  _jvmdir/jre-javaver-origin link
+
 * Tue Oct 01 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.6.f19
 - backward comaptibility java-1.7.0-openjdk.arch symlink moved to devel where it belongs
 
