@@ -146,7 +146,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.8%{?dist}
+Release: %{icedtea_version}.9%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -193,7 +193,7 @@ Source5: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
 # last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
-Source6: systemtap-tapset.tar.gz
+Source6:  systemtap-tapset-2013-10-02.tar.gz
 
 # .desktop files. 
 Source7:  policytool.desktop
@@ -699,8 +699,11 @@ chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
 # Install java-abrt-luncher
-mv  $JAVA_HOME/jre/bin/java $JAVA_HOME/jre/bin/java-abrt
-cat %{SOURCE13} | sed -e s:@JAVA_PATH@:%{_jvmdir}/%{jredir}/bin/java-abrt:g -e s:@LIB_DIR@:%{LIBDIR}/libabrt-java-connector.so:g >  $JAVA_HOME/jre/bin/java
+mkdir  $JAVA_HOME/jre-abrt
+mkdir  $JAVA_HOME/jre-abrt/bin
+mv  $JAVA_HOME/jre/bin/java $JAVA_HOME/jre-abrt/bin/java
+ln -s %{_jvmdir}/%{sdkdir}/jre/lib $JAVA_HOME/jre-abrt/lib
+cat %{SOURCE13} | sed -e s:@JAVA_PATH@:%{_jvmdir}/%{sdkdir}/jre-abrt/bin/java:g -e s:@LIB_DIR@:%{LIBDIR}/libabrt-java-connector.so:g >  $JAVA_HOME/jre/bin/java
 chmod 755 $JAVA_HOME/jre/bin/java
 
 # Build pulseaudio and install it to JDK build location
@@ -747,7 +750,7 @@ mkdir -p $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
 
   # Install main files.
   install -d -m 755 $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
-  cp -a bin include lib src.zip $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
+  cp -a jre-abrt bin include lib src.zip $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
   install -d -m 755 $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}
   cp -a jre/bin jre/lib $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}
   cp -a ASSEMBLY_EXCEPTION LICENSE THIRD_PARTY_README $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}
@@ -1310,6 +1313,7 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/%{archinstall}/client/
 %{_sysconfdir}/.java/
 %{_sysconfdir}/.java/.systemPrefs
+%{_jvmdir}/%{sdkdir}/jre-abrt
 
 
 %files devel
@@ -1386,6 +1390,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Oct 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.9.f20
+- renamed tapset source to be "versioned"
+- improved agent placement
+
 * Wed Oct 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.8.f20
 - updated tapset to current head
 
