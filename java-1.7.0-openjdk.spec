@@ -138,7 +138,11 @@
 # for the primary arch for now). Systemtap uses the machine name
 # aka build_cpu as architecture specific directory name.
 %global tapsetroot /usr/share/systemtap
-%global tapsetdir %{tapsetroot}/tapset/%{_build_cpu}
+  %ifarch %{ix86}
+    %global tapsetdir %{tapsetroot}/tapset/i386
+  %else
+    %global tapsetdir %{tapsetroot}/tapset/%{_build_cpu}
+  %endif
 %endif
 
 # Prevent brp-java-repack-jars from being run.
@@ -146,7 +150,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.10%{?dist}
+Release: %{icedtea_version}.11%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1388,6 +1392,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Oct 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.11.f20
+- another tapset fix 
+
 * Fri Oct 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.10.f20
 - abrt changed to soft dependece
 
