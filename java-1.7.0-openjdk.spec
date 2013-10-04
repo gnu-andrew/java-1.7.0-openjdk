@@ -1388,7 +1388,7 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
-* Thu Oct 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.10.f20
+* Fri Oct 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.10.f20
 - abrt changed to soft dependece
 
 * Thu Oct 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.9.f20
