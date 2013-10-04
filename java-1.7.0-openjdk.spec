@@ -146,7 +146,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.9%{?dist}
+Release: %{icedtea_version}.10%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -291,7 +291,6 @@ Patch504: callerclass-04.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
-BuildRequires: abrt-java-connector
 BuildRequires: gcc-c++
 BuildRequires: alsa-lib-devel
 BuildRequires: cups-devel
@@ -345,7 +344,6 @@ BuildRequires: prelink
 BuildRequires: systemtap-sdt-devel
 %endif
 
-Requires: abrt-java-connector%{?_isa}
 Requires: rhino
 Requires: lcms2 >= 2.5
 Requires: libjpeg = 6b
@@ -1390,6 +1388,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Oct 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.10.f20
+- abrt changed to soft dependece
+
 * Thu Oct 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.9.f20
 - renamed tapset source to be "versioned"
 - improved agent placement
