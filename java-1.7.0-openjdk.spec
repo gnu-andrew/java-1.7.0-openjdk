@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.2
+%global icedtea_version 2.4.3
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -103,9 +103,9 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global updatever        40
+%global updatever       45
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        60
+%global buildver        15
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
@@ -137,7 +137,11 @@
 # for the primary arch for now). Systemtap uses the machine name
 # aka build_cpu as architecture specific directory name.
 %global tapsetroot /usr/share/systemtap
-%global tapsetdir %{tapsetroot}/tapset/%{_build_cpu}
+  %ifarch %{ix86}
+    %global tapsetdir %{tapsetroot}/tapset/i386
+  %else
+    %global tapsetdir %{tapsetroot}/tapset/%{_build_cpu}
+  %endif
 %endif
 
 # Prevent brp-java-repack-jars from being run.
@@ -145,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.7%{?dist}
+Release: %{icedtea_version}.0%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -190,7 +194,7 @@ Source5: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
 # last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
-Source6: systemtap-tapset.tar.gz
+Source6: systemtap-tapset-2013-10-02.tar.gz
 
 # .desktop files. 
 Source7:  policytool.desktop
@@ -211,7 +215,7 @@ Source10: remove-intree-libraries.sh
 Source1111: fsg.sh
 
 # Ensure we aren't using the limited crypto policy
-Source11: TestCryptoLevel.java
+Source12: TestCryptoLevel.java
 
 # RPM/distribution specific patches
 
@@ -237,20 +241,11 @@ Patch6:   %{name}-debuginfo.patch
 # Add rhino support
 Patch100: rhino.patch
 
-# Type fixing for s390
-Patch101: zero-s8024914.patch
-Patch102: zero-size_t.patch
-
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
-
-# Zero fixes
-Patch1100: zero-entry_frame_call_wrapper.patch
-Patch1110: zero-zero_build.patch
-Patch1120: zero-gcdrainstacktargetsize.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -266,7 +261,6 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
-Patch404: RH661505-toBeReverted.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -503,15 +497,6 @@ tar xzf %{SOURCE9}
 %patch6
 %endif
 
-# Type fixes for s390
-%patch101
-%ifnarch %{arm}
-%patch102
-%patch1100
-%patch1110
-%patch1120
-%endif
-
 %patch106
 %patch200
 
@@ -525,8 +510,6 @@ tar xzf %{SOURCE9}
 %patch402
 %patch403
 %endif
-
-%patch404 -R
 
 %build
 # How many cpu's do we have?
@@ -661,7 +644,7 @@ rm -f %{buildoutputdir}/lib/fontconfig*.properties.src
 rm -f %{buildoutputdir}/lib/fontconfig*.bfc
 
 # Check unlimited policy has been used
-$JAVA_HOME/bin/javac -d . %{SOURCE11}
+$JAVA_HOME/bin/javac -d . %{SOURCE12}
 $JAVA_HOME/bin/java TestCryptoLevel
 
 
@@ -1324,6 +1307,16 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Oct 10 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.0.f19
+- security update to icedtea 2.4.3 (u45, b15)
+- removed upstreamed patch101 zero-s8024914.patch
+- removed upstreamed patch102: zero-size_t.patch
+- removed upstreamed patch1100: zero-entry_frame_call_wrapper.patch
+- removed upstreamed patch1110: zero-zero_build.patch
+- removed upstreamed patch1120: zero-gcdrainstacktargetsize.patch
+- fixed tapset for 32b archs
+- source11 redecalred as 12
+
 * Wed Oct 02 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.7.f19
 - updated tapset to current head
 - fixed incorrect  _jvmdir/jre-javaver_origin to  _jvmdir/jre-javaver-origin link
@@ -1360,7 +1353,7 @@ exit 0
 - added patch404 RH661505-toBeReverted.patch, to be *reverted* during prep
 - buildver bumbed to 60
 
-* Mon Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f19
+* Tue Sep 03 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.25-2.4.1.4.f19
 - buildver bumbed to 31
 - switched back to system lcms2
  - removed patch 500 java-1.7.0-openjdk-disable-system-lcms
