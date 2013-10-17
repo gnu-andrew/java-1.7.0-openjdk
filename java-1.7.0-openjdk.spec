@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.2
+%global icedtea_version 2.4.3
 %global icedtea_version_arm32 2.3.12
 %global hg_tag icedtea-{icedtea_version}
 
@@ -104,9 +104,9 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global updatever        40
+%global updatever       45
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        60
+%global buildver        15
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
@@ -150,7 +150,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.11%{?dist}
+Release: %{icedtea_version}.0%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -248,20 +248,12 @@ Patch6:   %{name}-debuginfo.patch
 Patch100: rhino.patch
 Patch1000: rhino-2.3.patch
 
-# Type fixing for s390
-Patch101: zero-s8024914.patch
-Patch102: zero-size_t.patch
 
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
 Patch105: %{name}-ppc-zero-hotspot.patch
 
 Patch106: %{name}-freetype-check-fix.patch
-
-# Zero fixes
-Patch1100: zero-entry_frame_call_wrapper.patch
-Patch1110: zero-zero_build.patch
-Patch1120: zero-gcdrainstacktargetsize.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
 Patch200: abrt_friendly_hs_log_jdk7.patch
@@ -284,7 +276,6 @@ Patch401: 657854-openjdk7.patch
 Patch402: gstackbounds.patch
 Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
-Patch404: RH661505-toBeReverted.patch
 # End of tmp patches
 
 # Temporary backport of patches already upstream but not in a icedtea7-2.3.X release yet
@@ -348,21 +339,11 @@ BuildRequires: prelink
 BuildRequires: systemtap-sdt-devel
 %endif
 
-Requires: rhino
-Requires: lcms2 >= 2.5
-Requires: libjpeg = 6b
 Requires: fontconfig
 Requires: xorg-x11-fonts-Type1
-# Require /etc/pki/java/cacerts.
-Requires: ca-certificates
-# Require jpackage-utils for ant.
-Requires: jpackage-utils >= 1.7.3-1jpp.2
-# Require zoneinfo data provided by tzdata-java subpackage.
-Requires: tzdata-java
-# Post requires alternatives to install tool alternatives.
-Requires(post):   %{_sbindir}/alternatives
-# Postun requires alternatives to uninstall tool alternatives.
-Requires(postun): %{_sbindir}/alternatives
+#requires rest of java
+Requires: %{name}-headless = %{epoch}:%{version}-%{release}
+
 
 # Standard JPackage base provides.
 Provides: jre-%{javaver}-%{origin} = %{epoch}:%{version}-%{release}
@@ -373,16 +354,6 @@ Provides: jre = %{javaver}
 Provides: java-%{origin} = %{epoch}:%{version}-%{release}
 Provides: java = %{epoch}:%{javaver}
 # Standard JPackage extensions provides.
-Provides: jndi = %{epoch}:%{version}
-Provides: jndi-ldap = %{epoch}:%{version}
-Provides: jndi-cos = %{epoch}:%{version}
-Provides: jndi-rmi = %{epoch}:%{version}
-Provides: jndi-dns = %{epoch}:%{version}
-Provides: jaas = %{epoch}:%{version}
-Provides: jsse = %{epoch}:%{version}
-Provides: jce = %{epoch}:%{version}
-Provides: jdbc-stdext = 4.1
-Provides: java-sasl = %{epoch}:%{version}
 Provides: java-fonts = %{epoch}:%{version}
 
 # Obsolete older 1.6 packages as it cannot use the new bytecode
@@ -394,6 +365,46 @@ Obsoletes: java-1.6.0-openjdk-src
 
 %description
 The OpenJDK runtime environment.
+
+%package headless
+Summary: The OpenJDK runtime environment without audio and video support
+Group:   Development/Languages
+
+Requires: rhino
+Requires: lcms2 >= 2.5
+Requires: libjpeg = 6b
+# Require /etc/pki/java/cacerts.
+Requires: ca-certificates
+# Require jpackage-utils for ant.
+Requires: jpackage-utils >= 1.7.3-1jpp.2
+# Require zoneinfo data provided by tzdata-java subpackage.
+Requires: tzdata-java
+# Post requires alternatives to install tool alternatives.
+Requires(post):   %{_sbindir}/alternatives
+# Postun requires alternatives to uninstall tool alternatives.
+Requires(postun): %{_sbindir}/alternatives
+
+Provides: jre-%{javaver}-%{origin}-headless = %{epoch}:%{version}-%{release}
+Provides: jre-%{origin}-headless = %{epoch}:%{version}-%{release}
+Provides: jre-%{javaver}-headless = %{epoch}:%{version}-%{release}
+Provides: java-%{javaver}-headless = %{epoch}:%{version}-%{release}
+Provides: jre-headless = %{javaver}
+Provides: java-%{origin}-headless = %{epoch}:%{version}-%{release}
+Provides: java-headless = %{epoch}:%{javaver}
+# Standard JPackage extensions provides.
+Provides: jndi = %{epoch}:%{version}
+Provides: jndi-ldap = %{epoch}:%{version}
+Provides: jndi-cos = %{epoch}:%{version}
+Provides: jndi-rmi = %{epoch}:%{version}
+Provides: jndi-dns = %{epoch}:%{version}
+Provides: jaas = %{epoch}:%{version}
+Provides: jsse = %{epoch}:%{version}
+Provides: jce = %{epoch}:%{version}
+Provides: jdbc-stdext = 4.1
+Provides: java-sasl = %{epoch}:%{version}
+
+%description headless
+The OpenJDK runtime environment without audio and video 
 
 %package devel
 Summary: OpenJDK Development Environment
@@ -540,14 +551,6 @@ tar xzf %{SOURCE9}
 %patch6
 %endif
 
-# Type fixes for s390
-%patch101
-%ifnarch %{arm}
-%patch102
-%patch1100
-%patch1110
-%patch1120
-%endif
 
 %patch106
 %patch200
@@ -576,8 +579,6 @@ tar xzf %{SOURCE9}
 %patch502
 %patch503
 %patch504
-%else
-%patch404 -R
 %endif
 
 %build
@@ -867,12 +868,41 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/.java/.systemPrefs
 find $RPM_BUILD_ROOT%{_jvmdir}/%{jredir} -type d \
   | grep -v jre/lib/security \
   | sed 's|'$RPM_BUILD_ROOT'|%dir |' \
-  > %{name}.files
+  > %{name}.files-headless
 # Find JRE files.
 find $RPM_BUILD_ROOT%{_jvmdir}/%{jredir} -type f -o -type l \
   | grep -v jre/lib/security \
   | sed 's|'$RPM_BUILD_ROOT'||' \
-  >> %{name}.files
+  > %{name}.files.all
+#split %{name}.files to %{name}.files-headless and %{name}.files
+#see https://bugzilla.redhat.com/show_bug.cgi?id=875408
+NOT_HEADLESS=\
+"%{_jvmdir}/%{uniquesuffix}/jre/lib/%{archinstall}/libjsoundalsa.so 
+%{_jvmdir}/%{uniquesuffix}/jre/lib/%{archinstall}/libpulse-java.so 
+%{_jvmdir}/%{uniquesuffix}/jre/lib/%{archinstall}/libsplashscreen.so 
+%{_jvmdir}/%{uniquesuffix}/jre/lib/%{archinstall}/xawt/libmawt.so
+%{_jvmdir}/%{uniquesuffix}/jre-abrt/lib/%{archinstall}/libjsoundalsa.so 
+%{_jvmdir}/%{uniquesuffix}/jre-abrt/lib/%{archinstall}/libpulse-java.so 
+%{_jvmdir}/%{uniquesuffix}/jre-abrt/lib/%{archinstall}/libsplashscreen.so 
+%{_jvmdir}/%{uniquesuffix}/jre-abrt/lib/%{archinstall}/xawt/libmawt.so"
+#filter  %{name}.files from  %{name}.files.all to  %{name}.files-headless
+ALL=`cat %{name}.files.all`
+for file in $ALL ; do 
+  INLCUDE="NO" ; 
+  for blacklist in $NOT_HEADLESS ; do
+#we can not match normally, because rpmbuild will evaluate !0 result as script failure
+    q=`expr match "$file" "$blacklist"` || :
+    l=`expr length  "$blacklist"` || :
+    if [ $q -eq $l  ]; then 
+      INLCUDE="YES" ; 
+    fi;
+  done
+    if [ "x$INLCUDE" = "xNO"  ]; then 
+      echo "$file" >> %{name}.files-headless
+    else
+      echo "$file" >> %{name}.files
+    fi
+done
 # Find demo directories.
 find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
   $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/sample -type d \
@@ -914,10 +944,15 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
     echo "" >> accessibility.properties
   popd
 
+%post 
+update-desktop-database %{_datadir}/applications &> /dev/null || :
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
+exit 0
+
 
 # FIXME: identical binaries are copied, not linked. This needs to be
 # fixed upstream.
-%post
+%post headless
 %ifarch %{jit_arches}
 #see https://bugzilla.redhat.com/show_bug.cgi?id=513605
 %{jrebindir}/java -Xshare:dump >/dev/null 2>/dev/null
@@ -1043,11 +1078,6 @@ update-desktop-database %{_datadir}/applications &> /dev/null || :
 exit 0
 
 %postun
-  alternatives --remove java %{jrebindir}/java
-  alternatives --remove jre_%{origin} %{_jvmdir}/%{jredir}
-  alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
-  alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
-
 update-desktop-database %{_datadir}/applications &> /dev/null || :
 
 if [ $1 -eq 0 ] ; then
@@ -1057,7 +1087,16 @@ fi
 
 exit 0
 
-%posttrans
+
+%postun headless
+  alternatives --remove java %{jrebindir}/java
+  alternatives --remove jre_%{origin} %{_jvmdir}/%{jredir}
+  alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
+  alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
+
+exit 0
+
+%posttrans 
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %post devel
@@ -1223,6 +1262,8 @@ done
 update-alternatives --install %{_jvmdir}/java-%{javaver}-%{origin} java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdkdir} %{priority} \
 --slave %{_jvmjardir}/java-%{javaver}-%{origin}       java_sdk_%{javaver}_%{origin}_exports      %{_jvmjardir}/%{sdkdir}
 
+update-desktop-database %{_datadir}/applications &> /dev/null || :
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 
 exit 0
 
@@ -1232,7 +1273,18 @@ exit 0
   alternatives --remove java_sdk_%{javaver} %{_jvmdir}/%{sdkdir}
   alternatives --remove java_sdk_%{javaver}_%{origin} %{_jvmdir}/%{sdkdir}
 
+update-desktop-database %{_datadir}/applications &> /dev/null || :
+
+if [ $1 -eq 0 ] ; then
+    /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+fi
+
 exit 0
+
+%posttrans  devel
+/usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+
 
 %post javadoc
 MAKE_THIS_DEFAULT=0
@@ -1277,6 +1329,10 @@ exit 0
 
 
 %files -f %{name}.files
+%{_datadir}/icons/hicolor/*x*/apps/java-%{javaver}.png
+
+
+%files headless  -f %{name}.files-headless
 %defattr(-,root,root,-)
 %doc %{_jvmdir}/%{sdkdir}/ASSEMBLY_EXCEPTION
 %doc %{_jvmdir}/%{sdkdir}/LICENSE
@@ -1295,7 +1351,6 @@ exit 0
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.policy
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.security
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/logging.properties
-%{_datadir}/icons/hicolor/*x*/apps/java-%{javaver}.png
 %{_mandir}/man1/java-%{uniquesuffix}.1*
 %{_mandir}/man1/keytool-%{uniquesuffix}.1*
 %{_mandir}/man1/orbd-%{uniquesuffix}.1*
@@ -1392,6 +1447,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Oct 17 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.0.f20
+- updated to new  CPU sources 2.4.3
+- jdk splitted to headless and rest
+
 * Fri Oct 04 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.2.11.f20
 - another tapset fix 
 
