@@ -2,7 +2,7 @@
 %global debug 0
 
 %global icedtea_version 2.4.3
-%global icedtea_version_arm32 2.3.12
+%global icedtea_version_arm32 2.3.13
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -150,7 +150,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -277,12 +277,6 @@ Patch402: gstackbounds.patch
 Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
 # End of tmp patches
-
-# Temporary backport of patches already upstream but not in a icedtea7-2.3.X release yet
-Patch501: callerclass-01.patch
-Patch502: callerclass-02.patch
-Patch503: callerclass-03.patch
-Patch504: callerclass-04.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -572,13 +566,6 @@ tar xzf %{SOURCE9}
 %patch402
 %endif
 %patch403
-%endif
-
-%ifarch %{arm}
-%patch501
-%patch502
-%patch503
-%patch504
 %endif
 
 %build
@@ -1447,6 +1434,13 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Oct 18 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.1.f20
+- arm tarball updated to new  CPU sources 2.3.13
+- removed upstreamed  patch 501 callerclass-01.patch
+- removed upstreamed  patch 502 callerclass-02.patch
+- removed upstreamed  patch 503 callerclass-02.patch
+- removed upstreamed  patch 504 callerclass-02.patch
+
 * Thu Oct 17 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.0.f20
 - updated to new  CPU sources 2.4.3
 - jdk splitted to headless and rest
