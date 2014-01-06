@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -262,6 +262,7 @@ Patch300: pulse-soundproperties.patch
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
 Patch410: 1015432.patch
+Patch411: 1029588.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -513,6 +514,7 @@ tar xzf %{SOURCE9}
 %endif
 
 %patch410
+%patch411
 
 %build
 # How many cpu's do we have?
@@ -1310,6 +1312,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Jan 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.2.f19
+- added and applied patch411 1029588.patch
+- resolves rhbz#1029588
+
 * Mon Jan 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.1.f19
 - added aand applied patch410, 1015432.patch
 - resolves rhbz#1015432
