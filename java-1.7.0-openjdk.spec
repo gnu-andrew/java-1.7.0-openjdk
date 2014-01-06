@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -261,6 +261,7 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
+Patch410: 1015432.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -510,6 +511,8 @@ tar xzf %{SOURCE9}
 %patch402
 %patch403
 %endif
+
+%patch410
 
 %build
 # How many cpu's do we have?
@@ -1307,6 +1310,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Jan 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.1.f19
+- added aand applied patch410, 1015432.patch
+- resolves rhbz#1015432
+
 * Thu Oct 10 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.0.f19
 - security update to icedtea 2.4.3 (u45, b15)
 - removed upstreamed patch101 zero-s8024914.patch
