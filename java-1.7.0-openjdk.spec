@@ -150,7 +150,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -277,6 +277,8 @@ Patch402: gstackbounds.patch
 Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
 Patch410: 1015432.patch
+Patch411: 1029588.patch
+Patch4110: 1029588-2.3.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -571,6 +573,12 @@ tar xzf %{SOURCE9}
 
 %ifnarch %{arm}
 %patch410
+%endif
+
+%ifarch %{arm}
+%patch4110
+%else
+%patch411
 %endif
 
 %build
@@ -1439,6 +1447,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Jan 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.4.f19
+- added and applied patch411 1029588.patch (for 2.4)
+- added and applied patch4110 1029588-2.3.patch (for 2.3)
+- resolves rhbz#1029588
+
 * Mon Jan 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.3.f19
 - added and applied for icedtea 2.4 patch410, 1015432.patch
 - resolves rhbz#1015432
