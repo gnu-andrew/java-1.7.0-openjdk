@@ -150,7 +150,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -382,7 +382,7 @@ Provides: jre-%{javaver}-%{origin}-headless = %{epoch}:%{version}-%{release}
 Provides: jre-%{origin}-headless = %{epoch}:%{version}-%{release}
 Provides: jre-%{javaver}-headless = %{epoch}:%{version}-%{release}
 Provides: java-%{javaver}-headless = %{epoch}:%{version}-%{release}
-Provides: jre-headless = %{javaver}
+Provides: jre-headless = %{epoch}:%{javaver}
 Provides: java-%{origin}-headless = %{epoch}:%{version}-%{release}
 Provides: java-headless = %{epoch}:%{javaver}
 # Standard JPackage extensions provides.
@@ -1434,6 +1434,11 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Jan 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.2.f20
+- changed Provides: jre-headless = %{javaver}
+  to      Provides: jre-headless = %{epoch}:%{javaver}
+- resolves rhbz#1046050
+
 * Fri Oct 18 2013 Jiri Vanek <jvanek@redhat.com> - 1.7.0.40-2.4.3.1.f20
 - arm tarball updated to new  CPU sources 2.3.13
 - removed upstreamed  patch 501 callerclass-01.patch
