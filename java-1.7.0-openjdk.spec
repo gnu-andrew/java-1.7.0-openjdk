@@ -265,6 +265,7 @@ Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
 Patch410: 1015432.patch
 Patch411: 1029588.patch
+Patch412: zero-x32.diff
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -536,6 +537,7 @@ tar xzf %{SOURCE9}
 
 %patch410
 %patch411
+%patch412
 
 %build
 # How many cpu's do we have?
@@ -1411,6 +1413,7 @@ exit 0
  - make: 
   - always used DISABLE_INTREE_EC,  UNLIMITED_CRYPTO
   - removed arm32 specific DISTRO_PACKAGE_VERSION JDK_UPDATE_VERSION  JDK_BUILD_NUMBER
+- added patch412 zero-x32.diff to try to fix zero builds build
 
 * Fri Jan 10 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.0.f20
 - updated to security icedtea 2.4.4

@@ -1,0 +1,10 @@
+--- openjdk/hotspot/make/linux/makefiles/buildtree.make~	2014-01-17 07:01:20.584904000 -0500
++++ openjdk/hotspot/make/linux/makefiles/buildtree.make	2014-01-17 08:01:29.114904000 -0500
+@@ -211,6 +211,7 @@
+ 	echo "HOTSPOT_VM_DISTRO = $(HOTSPOT_VM_DISTRO)"; \
+ 	echo "OPENJDK = $(OPENJDK)"; \
+ 	echo "ZERO_BUILD = $(ZERO_BUILD)"; \
++	echo "JVM_VARIANT_ZERO = $(JVM_VARIANT_ZERO)"; \
+ 	echo; \
+ 	echo "# Used for platform dispatching"; \
+ 	echo "TARGET_DEFINES  = -DTARGET_OS_FAMILY_\$$(Platform_os_family)"; \
