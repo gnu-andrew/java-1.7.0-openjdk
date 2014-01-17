@@ -2,7 +2,6 @@
 %global debug 0
 
 %global icedtea_version 2.4.4
-%global icedtea_version_arm32 2.3.13
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -150,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -182,8 +181,6 @@ URL:      http://openjdk.java.net/
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
-#for arm is used icedtea7-forest-2.3 and fsg.sh is not run
-Source100:  openjdk-icedtea-%{icedtea_version_arm32}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -197,7 +194,7 @@ Source5: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
 # last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
-Source6:  systemtap-tapset-2013-10-02.tar.gz
+Source6: systemtap-tapset-2013-10-02.tar.gz
 
 # .desktop files. 
 Source7:  policytool.desktop
@@ -218,7 +215,7 @@ Source10: remove-intree-libraries.sh
 Source1111: fsg.sh
 
 # Ensure we aren't using the limited crypto policy
-Source11: TestCryptoLevel.java
+Source12: TestCryptoLevel.java
 
 Source13: java-abrt-luncher
 
@@ -229,7 +226,6 @@ Patch1:   java-1.7.0-openjdk-java-access-bridge-tck.patch
 
 # Disable access to access-bridge packages by untrusted apps
 Patch3:   java-1.7.0-openjdk-java-access-bridge-security.patch
-Patch30:   java-1.7.0-openjdk-java-access-bridge-security-2.3.patch
 
 # Ignore AWTError when assistive technologies are loaded 
 Patch4:   java-1.7.0-openjdk-accessible-toolkit.patch
@@ -246,8 +242,6 @@ Patch6:   %{name}-debuginfo.patch
 
 # Add rhino support
 Patch100: rhino.patch
-Patch1000: rhino-2.3.patch
-
 
 # Patch for PPC/PPC64
 Patch104: %{name}-ppc-zero-jdk.patch
@@ -266,19 +260,12 @@ Patch200: abrt_friendly_hs_log_jdk7.patch
 # mixer
 Patch300: pulse-soundproperties.patch
 
-# SystemTap support
-# Workaround for RH613824
-Patch302: systemtap.patch
-
-#Workaround RH947731
-Patch401: 657854-openjdk7.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
-Patch4020: gstackbounds-2.3.patch
 Patch403: PStack-808293.patch
 Patch410: 1015432.patch
 Patch411: 1029588.patch
-Patch4110: 1029588-2.3.patch
+Patch412: zero-x32.diff
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -474,19 +461,11 @@ Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is s
 Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
 
 %prep
-%ifarch %{arm}
-%setup -q -c -n %{uniquesuffix} -T -a 100
-%else
 %setup -q -c -n %{uniquesuffix} -T -a 0
-%endif
 cp %{SOURCE2} .
 
 # OpenJDK patches
-%ifarch %{arm}
-%patch1000
-%else
 %patch100
-%endif
 
 # pulseaudio support
 %if %{with_pulseaudio}
@@ -495,9 +474,6 @@ cp %{SOURCE2} .
 
 # Add systemtap patches if enabled
 %if %{with_systemtap}
-%ifarch %{arm}
-%patch302
-%endif
 %endif
 
 # Remove libraries that are linked
@@ -536,18 +512,14 @@ done
 tar xzf %{SOURCE9}
 %endif
 
-%ifarch %{arm}
-%patch30
-%else
+
 %patch3
-%endif
 %patch4
 
 %if %{debug}
 %patch5
 %patch6
 %endif
-
 
 %patch106
 %patch200
@@ -558,28 +530,14 @@ tar xzf %{SOURCE9}
 %patch105
 %endif
 
-%ifarch %{arm}
-%patch401
-%endif
-
 %ifarch %{jit_arches}
-%ifarch %{arm}
-%patch4020
-%else
 %patch402
-%endif
 %patch403
 %endif
 
-%ifnarch %{arm}
 %patch410
-%endif
-
-%ifarch %{arm}
-%patch4110
-%else
 %patch411
-%endif
+%patch412
 
 %build
 # How many cpu's do we have?
@@ -653,21 +611,13 @@ source jdk/make/jdk_generic_profile.sh
 umask $oldumask
 
 make \
-%ifnarch %{arm}
   DISABLE_INTREE_EC=true \
   UNLIMITED_CRYPTO=true \
-%endif
   ANT="/usr/bin/ant" \
   DISTRO_NAME="Fedora" \
-%ifarch %{arm}
-  DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u25-b33" \
-  JDK_UPDATE_VERSION="25" \
-  JDK_BUILD_NUMBER=b`printf "%02d" 33` \
-%else
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
   JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
   JDK_BUILD_NUMBER=b`printf "%02d" %{buildver}` \
-%endif
   MILESTONE="fcs" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
   STATIC_CXX="false" \
@@ -729,11 +679,10 @@ rm -f %{buildoutputdir}/j2sdk-image/jre/lib/fontconfig*.bfc
 rm -f %{buildoutputdir}/lib/fontconfig*.properties.src
 rm -f %{buildoutputdir}/lib/fontconfig*.bfc
 
-%ifnarch %{arm}
 # Check unlimited policy has been used
-$JAVA_HOME/bin/javac -d . %{SOURCE11}
+$JAVA_HOME/bin/javac -d . %{SOURCE12}
 $JAVA_HOME/bin/java TestCryptoLevel
-%endif
+
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -1096,7 +1045,7 @@ exit 0
 
 exit 0
 
-%posttrans 
+%posttrans
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %post devel
@@ -1344,10 +1293,8 @@ exit 0
 %{jvmjardir}
 %dir %{_jvmdir}/%{jredir}/lib/security
 %{_jvmdir}/%{jredir}/lib/security/cacerts
-%ifnarch %{arm}
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/US_export_policy.jar
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/local_policy.jar
-%endif
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.policy
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/security/java.security
 %config(noreplace) %{_jvmdir}/%{jredir}/lib/logging.properties
@@ -1447,6 +1394,27 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jan 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.1.f21
+- removed 2.3 tarball due to security issues (sync with f20)
+ - this causes zero arm32 jit to not exists eny more (aprox 30% slowdown)
+ - removed declarations:
+  - global icedtea_version_arm32 2.3.13
+  - source100  openjdk-icedtea-%{icedtea_version_arm32}.tar.xz
+ - removed:
+  - patch30   java-1.7.0-openjdk-java-access-bridge-security-2.3.patch
+  - patch1000 rhino-2.3.patch
+  - patch4020 gstackbounds-2.3.patch
+  - patch4110 1029588-2.3.patch
+  - patch302 systemtap.patch
+  - patch401 657854-openjdk7.patch
+ - with all follwing  ifarch arm calls
+ - patch410 and TestCryptoLevel are now used always
+ - US_export_policy.jar and  local_policy.jar are now listed always
+ - make: 
+  - always used DISABLE_INTREE_EC,  UNLIMITED_CRYPTO
+  - removed arm32 specific DISTRO_PACKAGE_VERSION JDK_UPDATE_VERSION  JDK_BUILD_NUMBER
+- added patch412 zero-x32.diff to try to fix zero builds build
+
 * Fri Jan 10 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.0.f21
 - updated to security icedtea 2.4.4
 - and arm tarball updated to security icedtea 2.3.13
