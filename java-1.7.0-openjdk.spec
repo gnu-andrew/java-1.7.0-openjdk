@@ -611,7 +611,7 @@ make \
   ZERO_BUILD="true" \
   ZERO_LIBARCH="%{archbuild}" \
   ZERO_ARCHDEF="%{archdef}" \
-%ifarch ppc ppc64 s390 s390x
+%ifarch ppc %{power64} s390 s390x
   ZERO_ENDIANNESS="big" \
 %else
   ZERO_ENDIANNESS="little" \
