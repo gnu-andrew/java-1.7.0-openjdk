@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -304,7 +304,6 @@ BuildRequires: xorg-x11-utils
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
-BuildRequires: pulseaudio >= 0.9.11
 %endif
 # Zero-assembler build requirement.
 %ifnarch %{jit_arches}
@@ -1394,6 +1393,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jan 24 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.2.f21
+- removed buildRequires: pulseaudio >= 0.9.11, as not neccessary
+ -  but kept libs-devel)
+
 * Fri Jan 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.1.f21
 - removed 2.3 tarball due to security issues (sync with f20)
  - this causes zero arm32 jit to not exists eny more (aprox 30% slowdown)
