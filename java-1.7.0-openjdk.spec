@@ -1,12 +1,12 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.5
+%global icedtea_version 2.5.0pre
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
 %global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
-%global jit_arches		%{ix86} x86_64 sparcv9 sparc64
+%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{power64}
 
 #if 0, then links are set forcibly, if 1 ten only if status is auto
 %global graceful_links 1
@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.1%{?dist}.1
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -224,6 +224,10 @@ Source15: fsg.sh
 Source16: TestCryptoLevel.java
 
 Source17: java-abrt-launcher
+
+# Sources for PPC HotSpot port
+Source18: ppc.tar.xz
+Source19: jvm.ppc64.cfg
 
 # RPM/distribution specific patches
 
@@ -473,7 +477,14 @@ Although working pretty fine, there are known issues with accessibility on, so d
 /usr/bin/xz -dc %{SOURCE1} | /usr/bin/tar -xf - # CORBA
 /usr/bin/xz -dc %{SOURCE2} | /usr/bin/tar -xf - # JAXP
 /usr/bin/xz -dc %{SOURCE3} | /usr/bin/tar -xf - # JAXWS
+
+# Which HotSpot port to use depends on arch
+%ifarch %{power64}
+/usr/bin/xz -dc %{SOURCE18} | /usr/bin/tar -xf - # PPC
+%else
 /usr/bin/xz -dc %{SOURCE4} | /usr/bin/tar -xf - # HotSpot
+%endif
+
 /usr/bin/xz -dc %{SOURCE5} | /usr/bin/tar -xf - # JDK
 /usr/bin/xz -dc %{SOURCE6} | /usr/bin/tar -xf - # langtools
 
@@ -647,6 +658,9 @@ make \
   ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
 %endif
 %endif
+%ifarch %{power64}
+  CC_INTERP="true" \
+%endif
   BUILD_JAXP=false BUILD_JAXWS=false BUILD_LANGTOOLS=false BUILD_JDK=false BUILD_CORBA=false \
   ALT_JDK_IMPORT_PATH=${JDK_TO_BUILD_WITH} ALT_OUTPUTDIR=${PWD}/bootstrap \
   %{debugbuild}
@@ -657,6 +671,11 @@ cp -av bootstrap/hotspot/outputdir/linux_%{archinstall}*/product/libjvm.so boots
 
 export ALT_BOOTDIR=${PWD}/bootstrap-vm
 
+%endif
+
+%ifarch %{power64}
+mkdir jdk/src/solaris/bin/ppc64
+cp %{SOURCE19} jdk/src/solaris/bin/ppc64/jvm.cfg
 %endif
 
 make \
@@ -692,12 +711,17 @@ make \
   ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
 %endif
 %endif
+%ifarch %{power64}
+  CC_INTERP="true" \
+%endif
   %{debugbuild}
 
 popd >& /dev/null
 
 %ifarch %{jit_arches}
+%ifnarch %{power64}
 chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
+%endif
 %endif
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
@@ -1445,6 +1469,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Jan 29 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.1.1
+- Update to IcedTea 2.5pre and support PPC port
+
 * Wed Jan 29 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.4.5.1.1
 - Update to IcedTea 2.4.5 (u51b31)
 - Switch to individual repository tarballs
