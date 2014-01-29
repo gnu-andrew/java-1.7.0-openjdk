@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.4
+%global icedtea_version 2.4.5
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -105,7 +105,7 @@
 %global origin          openjdk
 %global updatever       51
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        02
+%global buildver        31
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
@@ -181,43 +181,49 @@ URL:      http://openjdk.java.net/
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
+Source1:  corba-icedtea-%{icedtea_version}.tar.xz
+Source2:  jaxp-icedtea-%{icedtea_version}.tar.xz
+Source3:  jaxws-icedtea-%{icedtea_version}.tar.xz
+Source4:  hotspot-icedtea-%{icedtea_version}.tar.xz
+Source5:  jdk-icedtea-%{icedtea_version}.tar.xz
+Source6:  langtools-icedtea-%{icedtea_version}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
-Source2:  README.src
+Source7:  README.src
 
 # Sources 6-12 are taken from hg clone http://icedtea.classpath.org/hg/icedtea7
 # Unless said differently, there is directory with required sources which should be enough to pack/rename
 
 # Class rewrite to rewrite rhino hierarchy
-Source5: class-rewriter.tar.gz
+Source8: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
 # last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
-Source6: systemtap-tapset-2013-10-02.tar.gz
+Source9: systemtap-tapset-2013-10-02.tar.gz
 
 # .desktop files. 
-Source7:  policytool.desktop
-Source77: jconsole.desktop
+Source10: policytool.desktop
+Source11: jconsole.desktop
 
 # nss configuration file
-Source8: nss.cfg
+Source12: nss.cfg
 
 # FIXME: Taken from IcedTea snapshot 877ad5f00f69, but needs to be moved out
 # hg clone -r 877ad5f00f69 http://icedtea.classpath.org/hg/icedtea7
-Source9: pulseaudio.tar.gz
+Source13: pulseaudio.tar.gz
 
 # Removed libraries that we link instead
-Source10: remove-intree-libraries.sh
+Source14: remove-intree-libraries.sh
 
 #http://icedtea.classpath.org/hg/icedtea7/file/933d082ec889/fsg.sh
 # file to clean tarball, should be ketp updated as possible
-Source1111: fsg.sh
+Source15: fsg.sh
 
 # Ensure we aren't using the limited crypto policy
-Source12: TestCryptoLevel.java
+Source16: TestCryptoLevel.java
 
-Source13: java-abrt-luncher
+Source17: java-abrt-launcher
 
 # RPM/distribution specific patches
 
@@ -243,10 +249,6 @@ Patch6:   %{name}-debuginfo.patch
 # Add rhino support
 Patch100: rhino.patch
 
-# Patch for PPC/PPC64
-Patch104: %{name}-ppc-zero-jdk.patch
-Patch105: %{name}-ppc-zero-hotspot.patch
-
 Patch106: %{name}-freetype-check-fix.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
@@ -263,9 +265,6 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
-Patch410: 1015432.patch
-Patch411: 1029588.patch
-Patch412: zero-x32.diff
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -286,11 +285,9 @@ BuildRequires: libpng-devel
 BuildRequires: wget
 BuildRequires: libxslt
 BuildRequires: xorg-x11-proto-devel
-BuildRequires: mercurial
 BuildRequires: ant
 BuildRequires: libXinerama-devel
 BuildRequires: rhino
-BuildRequires: redhat-lsb
 BuildRequires: zip
 BuildRequires: fontconfig
 BuildRequires: xorg-x11-fonts-Type1
@@ -301,6 +298,13 @@ BuildRequires: at-spi-devel
 BuildRequires: gawk
 BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
+BuildRequires: hostname
+BuildRequires: nss-devel
+# Temp bootstrap hack to get working PPC builds
+# We need the symlink to be resolved to copy the JDK
+%ifarch ppc %{power64}
+BuildRequires: fluid-soundfont-gm
+%endif
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
@@ -461,8 +465,21 @@ Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is s
 Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
 
 %prep
-%setup -q -c -n %{uniquesuffix} -T -a 0
-cp %{SOURCE2} .
+# %setup -q -c -n %{uniquesuffix} -T -a 0
+
+# Extract OpenJDK tarballs
+%setup -q -c -n %{uniquesuffix} -T -a 0 # root
+
+/usr/bin/xz -dc %{SOURCE1} | /usr/bin/tar -xf - # CORBA
+/usr/bin/xz -dc %{SOURCE2} | /usr/bin/tar -xf - # JAXP
+/usr/bin/xz -dc %{SOURCE3} | /usr/bin/tar -xf - # JAXWS
+/usr/bin/xz -dc %{SOURCE4} | /usr/bin/tar -xf - # HotSpot
+/usr/bin/xz -dc %{SOURCE5} | /usr/bin/tar -xf - # JDK
+/usr/bin/xz -dc %{SOURCE6} | /usr/bin/tar -xf - # langtools
+
+/usr/bin/chmod -Rf a+rX,u+w,g-w,o-w openjdk
+
+cp %{SOURCE7} .
 
 # OpenJDK patches
 %patch100
@@ -477,18 +494,15 @@ cp %{SOURCE2} .
 %endif
 
 # Remove libraries that are linked
-sh %{SOURCE10}
-
-# Copy jaxp, jaf and jaxws drops
-mkdir drops/
+sh %{SOURCE14}
 
 # Extract the rewriter (to rewrite rhino classes)
-tar xzf %{SOURCE5}
+tar xzf %{SOURCE8}
 
 # Extract systemtap tapsets
 %if %{with_systemtap}
 
-tar xzf %{SOURCE6}
+tar xzf %{SOURCE9}
 
 for file in tapset/*.in; do
 
@@ -509,7 +523,7 @@ done
 
 # Pulseaudio
 %if %{with_pulseaudio}
-tar xzf %{SOURCE9}
+tar xzf %{SOURCE13}
 %endif
 
 
@@ -524,20 +538,8 @@ tar xzf %{SOURCE9}
 %patch106
 %patch200
 
-%ifarch ppc ppc64
-# PPC fixes
-%patch104
-%patch105
-%endif
-
-%ifarch %{jit_arches}
 %patch402
 %patch403
-%endif
-
-%patch410
-%patch411
-%patch412
 
 %build
 # How many cpu's do we have?
@@ -595,7 +597,6 @@ export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-openjdk
 
 pushd openjdk >& /dev/null
 
-export ALT_DROPS_DIR=$PWD/../drops
 export ALT_BOOTDIR="$JDK_TO_BUILD_WITH"
 
 # Save old umask as jdk_generic_profile overwrites it
@@ -609,6 +610,11 @@ source jdk/make/jdk_generic_profile.sh
 
 # Restore old umask
 umask $oldumask
+
+# Temp bootstrap hack to get working PPC builds
+%ifarch ppc %{power64}
+
+mkdir bootstrap
 
 make \
   DISABLE_INTREE_EC=true \
@@ -641,6 +647,51 @@ make \
   ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
 %endif
 %endif
+  BUILD_JAXP=false BUILD_JAXWS=false BUILD_LANGTOOLS=false BUILD_JDK=false BUILD_CORBA=false \
+  ALT_JDK_IMPORT_PATH=${JDK_TO_BUILD_WITH} ALT_OUTPUTDIR=${PWD}/bootstrap \
+  %{debugbuild}
+
+cp -dRL ${JDK_TO_BUILD_WITH} bootstrap-vm
+rm -vf bootstrap-vm/jre/lib/%{archinstall}/server/libjvm.so
+cp -av bootstrap/hotspot/outputdir/linux_%{archinstall}*/product/libjvm.so bootstrap-vm/jre/lib/%{archinstall}/server
+
+export ALT_BOOTDIR=${PWD}/bootstrap-vm
+
+%endif
+
+make \
+  DISABLE_INTREE_EC=true \
+  UNLIMITED_CRYPTO=true \
+  ANT="/usr/bin/ant" \
+  DISTRO_NAME="Fedora" \
+  DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
+  JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
+  BUILD_NUMBER=b`printf "%02d" %{buildver}` \
+  JRE_RELEASE_VERSION=%{javaver}_`printf "%02d" %{updatever}`-b`printf "%02d" %{buildver}` \
+  MILESTONE="fcs" \
+  ALT_PARALLEL_COMPILE_JOBS="$NUM_PROC" \
+  HOTSPOT_BUILD_JOBS="$NUM_PROC" \
+  STATIC_CXX="false" \
+  RHINO_JAR="$PWD/../rhino/rhino.jar" \
+  GENSRCDIR="$PWD/generated.build" \
+  FT2_CFLAGS="`pkg-config --cflags freetype2` " \
+  FT2_LIBS="`pkg-config --libs freetype2` " \
+  DEBUG_CLASSFILES="true" \
+  DEBUG_BINARIES="true" \
+  STRIP_POLICY="no_strip" \
+%ifnarch %{jit_arches}
+  LIBFFI_CFLAGS="`pkg-config --cflags libffi` " \
+  LIBFFI_LIBS="-lffi " \
+  ZERO_BUILD="true" \
+  ZERO_LIBARCH="%{archbuild}" \
+  ZERO_ARCHDEF="%{archdef}" \
+%ifarch ppc %{power64} s390 s390x
+  ZERO_ENDIANNESS="big" \
+%else
+  ZERO_ENDIANNESS="little" \
+  ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
+%endif
+%endif
   %{debugbuild}
 
 popd >& /dev/null
@@ -651,12 +702,12 @@ chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
-# Install java-abrt-luncher
+# Install java-abrt-launcher
 mkdir  $JAVA_HOME/jre-abrt
 mkdir  $JAVA_HOME/jre-abrt/bin
 mv  $JAVA_HOME/jre/bin/java $JAVA_HOME/jre-abrt/bin/java
 ln -s %{_jvmdir}/%{sdkdir}/jre/lib $JAVA_HOME/jre-abrt/lib
-cat %{SOURCE13} | sed -e s:@JAVA_PATH@:%{_jvmdir}/%{sdkdir}/jre-abrt/bin/java:g -e s:@LIB_DIR@:%{LIBDIR}/libabrt-java-connector.so:g >  $JAVA_HOME/jre/bin/java
+cat %{SOURCE17} | sed -e s:@JAVA_PATH@:%{_jvmdir}/%{sdkdir}/jre-abrt/bin/java:g -e s:@LIB_DIR@:%{LIBDIR}/libabrt-java-connector.so:g >  $JAVA_HOME/jre/bin/java
 chmod 755 $JAVA_HOME/jre/bin/java
 
 # Build pulseaudio and install it to JDK build location
@@ -680,7 +731,7 @@ rm -f %{buildoutputdir}/lib/fontconfig*.properties.src
 rm -f %{buildoutputdir}/lib/fontconfig*.bfc
 
 # Check unlimited policy has been used
-$JAVA_HOME/bin/javac -d . %{SOURCE12}
+$JAVA_HOME/bin/javac -d . %{SOURCE16}
 $JAVA_HOME/bin/java TestCryptoLevel
 
 
@@ -786,7 +837,7 @@ popd
 
 
 # Install nss.cfg
-install -m 644 %{SOURCE8} $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/security/
+install -m 644 %{SOURCE12} $RPM_BUILD_ROOT%{_jvmdir}/%{jredir}/lib/security/
 
 
 # Install Javadoc documentation.
@@ -802,7 +853,7 @@ done
 
 # Install desktop files.
 install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/{applications,pixmaps}
-for e in %{SOURCE7} %{SOURCE77} ; do
+for e in %{SOURCE10} %{SOURCE11} ; do
     sed -i "s/#ARCH#/%{_arch}-%{release}/g" $e
     sed -i "s|/usr/bin|%{sdkbindir}/|g" $e
     desktop-file-install --vendor=%{uniquesuffix} --mode=644 \
@@ -1394,6 +1445,20 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Jan 29 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.4.5.1.1
+- Update to IcedTea 2.4.5 (u51b31)
+- Switch to individual repository tarballs
+- Fix source file numbering
+- Drop upstreamed PPC build patches and broken Zero workaround
+- Drop unneeded Mercurial & redhat-lsb dependencies.  Add hostname.
+- Add NSS dependency so config file is correctly written.
+- Temporary workaround to get PPC building again by pre-building HotSpot.
+- Fix typo (java-abrt-luncher->java-abrt-launcher)
+- resolves rhbz#910107
+- Rename JDK_BUILD_NUMBER to BUILD_NUMBER as in IcedTea.
+- Add JRE_RELEASE_VERSION and ALT_PARALLEL_COMPILE_JOBS from IcedTea.
+- Get FT2_{CFLAGS,LIBS} from pkg-config.
+
 * Fri Jan 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.1.f20
 - removed 2.3 tarball due to security issues
  - this causes zero arm32 jit to not exists eny more (aprox 30% slowdown)
