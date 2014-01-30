@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.4
+%global icedtea_version 2.4.5
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
@@ -105,7 +105,7 @@
 %global origin          openjdk
 %global updatever       51
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        02
+%global buildver        31
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.0%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -241,10 +241,6 @@ Patch6:   %{name}-debuginfo.patch
 # Add rhino support
 Patch100: rhino.patch
 
-# Patch for PPC/PPC64
-Patch104: %{name}-ppc-zero-jdk.patch
-Patch105: %{name}-ppc-zero-hotspot.patch
-
 Patch106: %{name}-freetype-check-fix.patch
 
 # allow to create hs_pid.log in tmp (in 700 permissions) if working directory is unwritable
@@ -261,9 +257,6 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
-Patch410: 1015432.patch
-Patch411: 1029588.patch
-Patch412: zero-x32.diff
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -284,7 +277,6 @@ BuildRequires: libpng-devel
 BuildRequires: wget
 BuildRequires: libxslt
 BuildRequires: xorg-x11-proto-devel
-BuildRequires: mercurial
 BuildRequires: ant
 BuildRequires: ant-nodeps
 BuildRequires: libXinerama-devel
@@ -300,10 +292,10 @@ BuildRequires: at-spi-devel
 BuildRequires: gawk
 BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
+BuildRequires: nss-devel
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
-BuildRequires: pulseaudio >= 0.9.11
 %endif
 # Zero-assembler build requirement.
 %ifnarch %{jit_arches}
@@ -503,20 +495,10 @@ tar xzf %{SOURCE9}
 %patch106
 %patch200
 
-%ifarch ppc ppc64
-# PPC fixes
-%patch104
-%patch105
-%endif
-
-%ifarch %{jit_arches}
 %patch402
 %patch403
-%endif
 
-%patch410
-%patch411
-%patch412
+
 
 %build
 # How many cpu's do we have?
@@ -597,13 +579,15 @@ make \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
   JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
   JDK_BUILD_NUMBER=b`printf "%02d" %{buildver}` \
+  JRE_RELEASE_VERSION=%{javaver}_`printf "%02d" %{updatever}`-b`printf "%02d" %{buildver}` \
   MILESTONE="fcs" \
+  ALT_PARALLEL_COMPILE_JOBS="$NUM_PROC" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
   STATIC_CXX="false" \
   RHINO_JAR="$PWD/../rhino/rhino.jar" \
   GENSRCDIR="$PWD/generated.build" \
-  FT2_CFLAGS="-I/usr/include/freetype2 " \
-  FT2_LIBS="-lfreetype " \
+  FT2_CFLAGS="`pkg-config --cflags freetype2` " \
+  FT2_LIBS="`pkg-config --libs freetype2` " \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
@@ -1314,6 +1298,26 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Jan 30 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.5.0.f19
+- removed buildRequires: pulseaudio >= 0.9.11, as not neccessary
+ -  but kept libs-devel
+- updated to icedtea 2.4.5
+ - http://blog.fuseyism.com/index.php/2014/01/29/icedtea-2-4-5-released/
+- removed upstreamed or unwonted patches (thanx to gnu_andrew to pointing them out)
+ - patch410 1015432.patch (upstreamed)
+ - patch411 1029588.patch
+ - patch412 zero-x32.diff
+ - patch104 java-1.7.0-ppc-zero-jdk.patch
+ - patch105 java-1.7.0-ppc-zero-hotspot.patch
+- patch402 gstackbounds.patch and patch403 PStack-808293.patch applied always
+ (again thanx to gnu_andrew)
+- merged other gnu_andrew's changes
+ - FT2_CFLAGS and FT2_LIBS hardoced values replaced by correct pkg-config calls 
+ - buildver bumbed to 31
+- added build requires  nss-devel
+- removed build requires mercurial
+- added JRE_RELEASE_VERSION and ALT_PARALLEL_COMPILE_JOBS into make call
+
 * Fri Jan 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.4.1.f19
 - added zero fix for alternative arches
  - patch412 zero-x32.diff to try to fix zero builds build
