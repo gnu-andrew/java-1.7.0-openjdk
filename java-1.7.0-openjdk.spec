@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0%{?dist}
+Release: %{icedtea_version}.1%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -903,14 +903,6 @@ if [ $? -ne 0 ]; then
   fi
 fi
 
-# Remove old alternatives
-for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
-  # Only grab what %{origin} installed
-  echo $alt | grep -q "$ID"
-  if [ $? -eq 0 ]; then
-    alternatives --remove $COMMAND $alt >& /dev/null || :
-   fi
-done
 
 ext=.gz
 alternatives \
@@ -966,15 +958,6 @@ for X in %{origin} %{javaver} ; do
     fi
   fi
 
-  # Remove old alternatives
-  for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
-    # Only grab what %{origin} installed
-    echo $alt | grep -q "$ID"
-    if [ $? -eq 0 ]; then
-      alternatives --remove $COMMAND $alt >& /dev/null || :
-     fi
-  done
-
   alternatives \
     --install %{_jvmdir}/jre-"$X" \
     jre_"$X" %{_jvmdir}/%{jredir} %{priority} \
@@ -990,17 +973,6 @@ for X in %{origin} %{javaver} ; do
 %endif
 done
 
-
-#we need to remove old alternatives with "_" typo //should live to f21:(
-  ID="%{_jvmdir}/\(\(jre\)\|\(java\)\)-%{javaver}-%{origin}"
-  COMMAND=jre_%{javaver}_%{origin}
-  for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
-    echo $alt | grep -q "$ID"
-    if [ $? -eq 0 ]; then
-      alternatives --remove $COMMAND $alt >& /dev/null || :
-     fi
-  done
-# the old should be removed, so we can install new :(
 update-alternatives --install %{_jvmdir}/jre-%{javaver}-%{origin} jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk} %{priority} \
 --slave %{_jvmjardir}/jre-%{javaver}       jre_%{javaver}_%{origin}_exports      %{jvmjardir}
 
@@ -1045,14 +1017,6 @@ if [ $? -ne 0 ]; then
   fi
 fi
 
-# Remove old alternatives
-for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
-  # Only grab what %{origin} installed
-  echo $alt | grep -q "$ID"
-  if [ $? -eq 0 ]; then
-    alternatives --remove $COMMAND $alt >& /dev/null || :
-   fi
-done
 
 ext=.gz
 alternatives \
@@ -1167,15 +1131,6 @@ for X in %{origin} %{javaver} ; do
     fi
   fi
 
-  # Remove old alternatives
-  for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
-    # Only grab what %{origin} installed
-    echo $alt | grep -q "$ID"
-    if [ $? -eq 0 ]; then
-      alternatives --remove $COMMAND $alt >& /dev/null || :
-     fi
-  done
-
   alternatives \
     --install %{_jvmdir}/java-"$X" \
     java_sdk_"$X" %{_jvmdir}/%{sdkdir} %{priority} \
@@ -1230,15 +1185,6 @@ if [ $? -ne 0 ]; then
     MAKE_THIS_DEFAULT=1
   fi
 fi
-
-# Remove old alternatives
-for alt in $(alternatives --display $COMMAND | grep priority | awk '{print $1}'); do
-  # Only grab what %{origin} installed
-  echo $alt | grep -q "$ID"
-  if [ $? -eq 0 ]; then
-    alternatives --remove $COMMAND $alt >& /dev/null || :
-   fi
-done
 
 alternatives \
   --install %{_javadocdir}/java javadocdir %{_javadocdir}/%{uniquejavadocdir}/api \
@@ -1378,6 +1324,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Thu Jan 30 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.5.1.f21
+- removed or cleaning alternatives remove in posts
+
 * Thu Jan 30 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.5.0.f21
 - updated to icedtea 2.4.5
  - http://blog.fuseyism.com/index.php/2014/01/29/icedtea-2-4-5-released/
