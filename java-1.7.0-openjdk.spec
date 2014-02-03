@@ -149,7 +149,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.2%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -225,10 +225,6 @@ Source16: TestCryptoLevel.java
 
 Source17: java-abrt-launcher
 
-# Sources for PPC HotSpot port
-Source18: ppc.tar.xz
-Source19: jvm.ppc64.cfg
-
 # RPM/distribution specific patches
 
 # Allow TCK to pass with access bridge wired in
@@ -269,9 +265,6 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
-Patch410: 1015432.patch
-Patch411: 1029588.patch
-Patch412: zero-x32.diff
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -307,11 +300,6 @@ BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
 BuildRequires: hostname
 BuildRequires: nss-devel
-# Temp bootstrap hack to get working PPC builds
-# We need the symlink to be resolved to copy the JDK
-%ifarch ppc %{power64}
-BuildRequires: fluid-soundfont-gm
-%endif
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
@@ -479,14 +467,7 @@ Although working pretty fine, there are known issues with accessibility on, so d
 /usr/bin/xz -dc %{SOURCE1} | /usr/bin/tar -xf - # CORBA
 /usr/bin/xz -dc %{SOURCE2} | /usr/bin/tar -xf - # JAXP
 /usr/bin/xz -dc %{SOURCE3} | /usr/bin/tar -xf - # JAXWS
-
-# Which HotSpot port to use depends on arch
-%ifarch %{power64}
-/usr/bin/xz -dc %{SOURCE18} | /usr/bin/tar -xf - # PPC
-%else
 /usr/bin/xz -dc %{SOURCE4} | /usr/bin/tar -xf - # HotSpot
-%endif
-
 /usr/bin/xz -dc %{SOURCE5} | /usr/bin/tar -xf - # JDK
 /usr/bin/xz -dc %{SOURCE6} | /usr/bin/tar -xf - # langtools
 
@@ -553,10 +534,6 @@ tar xzf %{SOURCE13}
 
 %patch402
 %patch403
-
-%patch410
-%patch411
-%patch412
 
 %build
 # How many cpu's do we have?
@@ -628,62 +605,6 @@ source jdk/make/jdk_generic_profile.sh
 # Restore old umask
 umask $oldumask
 
-# Temp bootstrap hack to get working PPC builds
-%ifarch ppc %{power64}
-
-mkdir bootstrap
-
-make \
-  DISABLE_INTREE_EC=true \
-  UNLIMITED_CRYPTO=true \
-  ANT="/usr/bin/ant" \
-  DISTRO_NAME="Fedora" \
-  DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
-  JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
-  JDK_BUILD_NUMBER=b`printf "%02d" %{buildver}` \
-  MILESTONE="fcs" \
-  HOTSPOT_BUILD_JOBS="$NUM_PROC" \
-  STATIC_CXX="false" \
-  RHINO_JAR="$PWD/../rhino/rhino.jar" \
-  GENSRCDIR="$PWD/generated.build" \
-  FT2_CFLAGS="-I/usr/include/freetype2 " \
-  FT2_LIBS="-lfreetype " \
-  DEBUG_CLASSFILES="true" \
-  DEBUG_BINARIES="true" \
-  STRIP_POLICY="no_strip" \
-%ifnarch %{jit_arches}
-  LIBFFI_CFLAGS="`pkg-config --cflags libffi` " \
-  LIBFFI_LIBS="-lffi " \
-  ZERO_BUILD="true" \
-  ZERO_LIBARCH="%{archbuild}" \
-  ZERO_ARCHDEF="%{archdef}" \
-%ifarch ppc %{power64} s390 s390x
-  ZERO_ENDIANNESS="big" \
-%else
-  ZERO_ENDIANNESS="little" \
-  ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
-%endif
-%endif
-%ifarch %{power64}
-  CC_INTERP="true" \
-%endif
-  BUILD_JAXP=false BUILD_JAXWS=false BUILD_LANGTOOLS=false BUILD_JDK=false BUILD_CORBA=false \
-  ALT_JDK_IMPORT_PATH=${JDK_TO_BUILD_WITH} ALT_OUTPUTDIR=${PWD}/bootstrap \
-  %{debugbuild}
-
-cp -dRL ${JDK_TO_BUILD_WITH} bootstrap-vm
-rm -vf bootstrap-vm/jre/lib/%{archinstall}/server/libjvm.so
-cp -av bootstrap/hotspot/outputdir/linux_%{archinstall}*/product/libjvm.so bootstrap-vm/jre/lib/%{archinstall}/server
-
-export ALT_BOOTDIR=${PWD}/bootstrap-vm
-
-%endif
-
-%ifarch %{power64}
-mkdir jdk/src/solaris/bin/ppc64
-cp %{SOURCE19} jdk/src/solaris/bin/ppc64/jvm.cfg
-%endif
-
 make \
   DISABLE_INTREE_EC=true \
   UNLIMITED_CRYPTO=true \
@@ -716,9 +637,6 @@ make \
   ZERO_ENDIANNESS="little" \
   ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
 %endif
-%endif
-%ifarch %{power64}
-  CC_INTERP="true" \
 %endif
   %{debugbuild}
 
@@ -1475,6 +1393,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jan 31 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.1.1
+- Update to IcedTea HEAD with merged PPC port
+
 * Wed Jan 29 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.1.1
 - Update to IcedTea 2.5pre and support PPC port
 
