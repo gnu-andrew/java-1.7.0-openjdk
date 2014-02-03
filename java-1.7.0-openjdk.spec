@@ -1,12 +1,12 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.5
+%global icedtea_version 2.5.0pre
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
 %global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
-%global jit_arches		%{ix86} x86_64 sparcv9 sparc64
+%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{power64}
 
 #links are set forcibly, f19 32b fix
 %global graceful_links 0
@@ -103,9 +103,9 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global updatever       51
+%global updatever       60
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        31
+%global buildver        03
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
@@ -281,7 +281,6 @@ BuildRequires: ant
 BuildRequires: ant-nodeps
 BuildRequires: libXinerama-devel
 BuildRequires: rhino
-BuildRequires: redhat-lsb
 BuildRequires: zip
 BuildRequires: fontconfig
 BuildRequires: xorg-x11-fonts-Type1
@@ -292,6 +291,7 @@ BuildRequires: at-spi-devel
 BuildRequires: gawk
 BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
+BuildRequires: hostname
 BuildRequires: nss-devel
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
@@ -450,9 +450,6 @@ cp %{SOURCE2} .
 # Remove libraries that are linked
 sh %{SOURCE10}
 
-# Copy jaxp, jaf and jaxws drops
-mkdir drops/
-
 # Extract the rewriter (to rewrite rhino classes)
 tar xzf %{SOURCE5}
 
@@ -578,7 +575,7 @@ make \
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
   JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
-  JDK_BUILD_NUMBER=b`printf "%02d" %{buildver}` \
+  BUILD_NUMBER=b`printf "%02d" %{buildver}` \
   JRE_RELEASE_VERSION=%{javaver}_`printf "%02d" %{updatever}`-b`printf "%02d" %{buildver}` \
   MILESTONE="fcs" \
   ALT_PARALLEL_COMPILE_JOBS="$NUM_PROC" \
@@ -609,7 +606,9 @@ make \
 popd >& /dev/null
 
 %ifarch %{jit_arches}
+%ifnarch %{power64}
 chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
+%endif
 %endif
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
@@ -1298,6 +1297,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Jan 31 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.1.1
+- Update to IcedTea HEAD with merged PPC port
+
 * Thu Jan 30 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.5.0.f19
 - removed buildRequires: pulseaudio >= 0.9.11, as not neccessary
  -  but kept libs-devel
