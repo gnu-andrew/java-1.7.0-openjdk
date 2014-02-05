@@ -25,6 +25,11 @@
 %global archinstall ppc64
 %global archdef PPC
 %endif
+%ifarch ppc64le
+%global archbuild ppc64le
+%global archinstall ppc64le
+%global archdef PPC64
+%endif
 %ifarch %{ix86}
 %global archbuild i586
 %global archinstall i386
@@ -76,7 +81,11 @@
 
 %global buildoutputdir openjdk/build/linux-%{archbuild}
 
+%ifnarch ppc64le
 %global with_pulseaudio 1
+%else
+%global with_pulseaudio 0
+%endif
 
 %ifarch %{jit_arches}
 %global with_systemtap 1
@@ -314,7 +323,7 @@ BuildRequires: libffi-devel >= 3.0.10
 BuildRequires: openssl
 # execstack build requirement.
 # no prelink on ARM yet
-%ifnarch %{arm} %{aarch64}
+%ifnarch %{arm} %{aarch64} ppc64le
 BuildRequires: prelink
 %endif
 %ifarch %{jit_arches}
@@ -546,7 +555,7 @@ export NUM_PROC=${NUM_PROC:-1}
 %endif
 
 # Build IcedTea and OpenJDK.
-%ifarch s390x sparc64 alpha %{power64} %{aarch64}
+%ifarch s390x sparc64 alpha %{power64} %{aarch64} ppc64le
 export ARCH_DATA_MODEL=64
 %endif
 %ifarch alpha
@@ -1393,6 +1402,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Feb 05 2014 Brent Baude <baude@us.ibm.com> - 1:1.7.0.60-2.5.0pre.2.1
+- Add ppc64le Changes
+
 * Wed Feb 05 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.2.1
 - Remove run-time Rhino dependency
 
