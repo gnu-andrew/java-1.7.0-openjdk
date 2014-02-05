@@ -300,6 +300,7 @@ BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
 BuildRequires: hostname
 BuildRequires: nss-devel
+BuildRequires: libattr-devel
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
@@ -1393,6 +1394,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Wed Feb 05 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.2.1
+- Add missing libattr-devel dependency
+
 * Fri Jan 31 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.1.1
 - Update to IcedTea HEAD with merged PPC port
 
