@@ -6,7 +6,7 @@
 
 %global aarch64			aarch64 arm64 armv8
 %global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
-%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{power64}
+%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 ppc64 ppc64p7
 
 #if 0, then links are set forcibly, if 1 ten only if status is auto
 %global graceful_links 1
@@ -20,7 +20,7 @@
 %global archinstall ppc
 %global archdef PPC
 %endif
-%ifarch %{power64}
+%ifarch ppc64 ppc64p7
 %global archbuild ppc64
 %global archinstall ppc64
 %global archdef PPC
@@ -158,7 +158,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.2%{?dist}
+Release: %{icedtea_version}.3%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -555,7 +555,7 @@ export NUM_PROC=${NUM_PROC:-1}
 %endif
 
 # Build IcedTea and OpenJDK.
-%ifarch s390x sparc64 alpha %{power64} %{aarch64} ppc64le
+%ifarch s390x sparc64 alpha %{power64} %{aarch64}
 export ARCH_DATA_MODEL=64
 %endif
 %ifarch alpha
@@ -634,19 +634,6 @@ make \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
-%ifnarch %{jit_arches}
-  LIBFFI_CFLAGS="`pkg-config --cflags libffi` " \
-  LIBFFI_LIBS="-lffi " \
-  ZERO_BUILD="true" \
-  ZERO_LIBARCH="%{archbuild}" \
-  ZERO_ARCHDEF="%{archdef}" \
-%ifarch ppc %{power64} s390 s390x
-  ZERO_ENDIANNESS="big" \
-%else
-  ZERO_ENDIANNESS="little" \
-  ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
-%endif
-%endif
   %{debugbuild}
 
 popd >& /dev/null
@@ -1402,6 +1389,10 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Feb 07 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.3.1
+- Expand power64 macro where we need to differentiate between big-endian and little-endian
+- Remove unnecessary overriding of Zero settings which break ppc64le
+
 * Wed Feb 05 2014 Brent Baude <baude@us.ibm.com> - 1:1.7.0.60-2.5.0pre.2.1
 - Add ppc64le Changes
 
