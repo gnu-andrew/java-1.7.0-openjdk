@@ -1,12 +1,16 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version 2.4.5
+%global icedtea_version_presuffix pre01
+%global icedtea_version 2.5
 %global hg_tag icedtea-{icedtea_version}
 
 %global aarch64			aarch64 arm64 armv8
-%global multilib_arches %{power64} sparc64 x86_64 %{aarch64}
-%global jit_arches		%{ix86} x86_64 sparcv9 sparc64
+#sometimes we need to distinguish big and little endian PPC64
+%global ppc64le			ppc64le
+%global ppc64be			ppc64 ppc64p7
+%global multilib_arches		%{power64} sparc64 x86_64 %{aarch64}
+%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{ppc64be}
 
 #if 0, then links are set forcibly, if 1 ten only if status is auto
 %global graceful_links 1
@@ -20,10 +24,15 @@
 %global archinstall ppc
 %global archdef PPC
 %endif
-%ifarch %{power64}
+%ifarch %{ppc64be}
 %global archbuild ppc64
 %global archinstall ppc64
 %global archdef PPC
+%endif
+%ifarch %{ppc64le}
+%global archbuild ppc64le
+%global archinstall ppc64le
+%global archdef PPC64
 %endif
 %ifarch %{ix86}
 %global archbuild i586
@@ -76,7 +85,11 @@
 
 %global buildoutputdir openjdk/build/linux-%{archbuild}
 
+%ifnarch %{ppc64le}
 %global with_pulseaudio 1
+%else
+%global with_pulseaudio 0
+%endif
 
 %ifarch %{jit_arches}
 %global with_systemtap 1
@@ -149,7 +162,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.1%{?dist}
+Release: %{icedtea_version}.0.1.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -180,7 +193,7 @@ URL:      http://openjdk.java.net/
 # find openjdk -name ".hg" -exec rm -rf '{}' \;
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
-Source0:  openjdk-icedtea-%{icedtea_version}.tar.xz
+Source0:  openjdk-icedtea-%{icedtea_version}%{icedtea_version_presuffix}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -294,6 +307,7 @@ BuildRequires: gawk
 BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
 BuildRequires: nss-devel
+BuildRequires: libattr-devel
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
@@ -307,7 +321,7 @@ BuildRequires: libffi-devel >= 3.0.10
 BuildRequires: openssl
 # execstack build requirement.
 # no prelink on ARM yet
-%ifnarch %{arm} %{aarch64}
+%ifnarch %{arm} %{aarch64} %{ppc64le}
 BuildRequires: prelink
 %endif
 %ifarch %{jit_arches}
@@ -346,7 +360,6 @@ The OpenJDK runtime environment.
 Summary: The OpenJDK runtime environment without audio and video support
 Group:   Development/Languages
 
-Requires: rhino
 Requires: lcms2 >= 2.5
 Requires: libjpeg = 6b
 # Require /etc/pki/java/cacerts.
@@ -612,19 +625,6 @@ make \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
-%ifnarch %{jit_arches}
-  LIBFFI_CFLAGS="`pkg-config --cflags libffi` " \
-  LIBFFI_LIBS="-lffi " \
-  ZERO_BUILD="true" \
-  ZERO_LIBARCH="%{archbuild}" \
-  ZERO_ARCHDEF="%{archdef}" \
-%ifarch ppc %{power64} s390 s390x
-  ZERO_ENDIANNESS="big" \
-%else
-  ZERO_ENDIANNESS="little" \
-  ZERO_ARCHFLAG="-D_LITTLE_ENDIAN" \
-%endif
-%endif
   %{debugbuild}
 
 popd >& /dev/null
@@ -1324,6 +1324,16 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Mon Feb 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.1.pre01.f21
+- adapted to icedtea-forest 2.5pre01 (sources based on tag pre01)
+- added icedtea_version_presuffix macro to  track this
+- added ppc64le and ppc64be macros to distinguish big and little endian PPC64
+- added new PPC64 archdef block for ppc64le (gnu_andrew)
+- pulseaudio removed from ppc64le build (gnu_andrew)
+- removed upstreamed arch-dependent make options (gnu_andrew)
+- added build requires libattr-devel (gnu_andrew)
+- removed runtime requires rhino (gnu_andrew)
+
 * Thu Jan 30 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.4.5.1.f21
 - removed or cleaning alternatives remove in posts
 
