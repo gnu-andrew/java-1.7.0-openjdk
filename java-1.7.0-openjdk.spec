@@ -497,7 +497,8 @@ cp %{SOURCE2} .
 # Remove libraries that are linked
 %ifarch %{aarch64}
 #remove the conditiona lso from  remove-in-tree-libraries
-sh %{SOURCE10}  CHANGE_JPG
+#sh %{SOURCE10}  CHANGE_JPG
+#tempraryly disabled
 %else
 sh %{SOURCE10} 
 %endif
