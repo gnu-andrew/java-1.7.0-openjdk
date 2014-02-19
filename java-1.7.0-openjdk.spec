@@ -9,8 +9,8 @@
 #sometimes we need to distinguish big and little endian PPC64
 %global ppc64le			ppc64le
 %global ppc64be			ppc64 ppc64p7
-%global multilib_arches		%{power64} sparc64 x86_64 %{aarch64}
-%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{ppc64be}
+%global multilib_arches		%{power64} sparc64 x86_64 
+%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{ppc64be} %{aarch64}
 
 #if 0, then links are set forcibly, if 1 ten only if status is auto
 %global graceful_links 1
@@ -162,7 +162,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.2.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.3.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -194,6 +194,7 @@ URL:      http://openjdk.java.net/
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}%{icedtea_version_presuffix}.tar.xz
+Source1:  aarch64-port-preview_rc1.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -255,6 +256,7 @@ Patch6:   %{name}-debuginfo.patch
 
 # Add rhino support
 Patch100: rhino.patch
+Patch1000: rhino-aarch64.patch
 
 Patch106: %{name}-freetype-check-fix.patch
 
@@ -272,6 +274,7 @@ Patch300: pulse-soundproperties.patch
 #Workaround RH902004
 Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
+Patch4030: PStack-808293-aarch64.patch
 # End of tmp patches
 
 BuildRequires: autoconf
@@ -466,11 +469,21 @@ Please note, the java-atk-wrapper is still in beta, and also OpenJDK itself is s
 Although working pretty fine, there are known issues with accessibility on, so do not rather install this package unless you really need.
 
 %prep
-%setup -q -c -n %{uniquesuffix} -T -a 0
+%ifarch %{aarch64}
+%global source_num 1
+%else
+%global source_num 0
+%endif
+
+%setup -q -c -n %{uniquesuffix} -T -a %{source_num}
 cp %{SOURCE2} .
 
 # OpenJDK patches
+%ifarch %{aarch64}
+%patch1000
+%else
 %patch100
+%endif
 
 # pulseaudio support
 %if %{with_pulseaudio}
@@ -482,7 +495,12 @@ cp %{SOURCE2} .
 %endif
 
 # Remove libraries that are linked
-sh %{SOURCE10}
+%ifarch %{aarch64}
+#remove the conditiona lso from  remove-in-tree-libraries
+sh %{SOURCE10}  SKIPP_JPG
+%else
+sh %{SOURCE10} 
+%endif
 
 # Copy jaxp, jaf and jaxws drops
 mkdir drops/
@@ -527,10 +545,21 @@ tar xzf %{SOURCE9}
 %endif
 
 %patch106
+%ifnarch %{aarch64}
+#friendly hserror is not applicable in head, needs to be revisited
 %patch200
+%endif
 
+%ifnarch %{aarch64}
+#seems to be upstreamed
 %patch402
+%endif
+
+%ifarch %{aarch64}
+%patch4030
+%else
 %patch403
+%endif
 
 
 
@@ -1257,8 +1286,10 @@ exit 0
 %dir %{_jvmdir}/%{sdkdir}
 %dir %{_jvmdir}/%{sdkdir}/jre/lib/
 %dir %{_jvmdir}/%{sdkdir}/jre/lib/%{archinstall}
+%ifarch x86_64
 %dir %{_jvmdir}/%{sdkdir}/jre/lib/%{archinstall}/xawt
 %dir %{_jvmdir}/%{sdkdir}/jre/lib/%{archinstall}/ext
+%endif
 %{_jvmdir}/%{jrelnk}
 %{_jvmjardir}/%{jrelnk}
 %{_jvmprivdir}/*
@@ -1365,7 +1396,15 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/ext/java-atk-wrapper.jar
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
+
 %changelog
+* Mon Feb 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.3.pre01.f21
+- added dual tarball with aarch64 port
+ - added source1  aarch64-port-preview_rc1.tar.xz
+- more owned dirs in JRE (RH1064500) put into if x86_64 condition
+- duplicated rhino and pstack patch for aarch64 usage
+- SKIPP_JPG falg added to remove-in-tree-libraries
+
 * Mon Feb 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.2.pre01.f21
 - added pretrans script to copy config files (RH1038092)
 - owned more dirs in JRE (RH1064500)

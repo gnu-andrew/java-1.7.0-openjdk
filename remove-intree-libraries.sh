@@ -14,11 +14,13 @@ if [ ! -d ${ZIP_SRC} ]; then
 fi	
 rm -rvf ${ZIP_SRC}
 
+if [ "$1" eq "SKIPP_JPG"] ; then
 echo "Removing libjpeg"
 if [ ! -f ${JPEG_SRC}/jdhuff.c ]; then # some file that sound definitely exist
 	echo "${JPEG_SRC} does not contain jpeg sources. Refusing to proceed."
 	exit 1
-fi	
+  fi	
+fi
 
 rm -vf ${JPEG_SRC}/jcomapi.c
 rm -vf ${JPEG_SRC}/jdapimin.c
