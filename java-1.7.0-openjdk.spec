@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version_presuffix pre01
+%global icedtea_version_presuffix pre02
 %global icedtea_version 2.5
 %global hg_tag icedtea-{icedtea_version}
 
@@ -660,7 +660,9 @@ make \
 popd >& /dev/null
 
 %ifarch %{jit_arches}
+%ifnarch %{aarch64}
 chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
+%endif
 %endif
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
@@ -1399,12 +1401,16 @@ exit 0
 
 
 %changelog
+* Fri Feb 21 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.3.pre02.f21
+- updated to upstream prerelease 02
+
 * Mon Feb 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.3.pre01.f21
 - added dual tarball with aarch64 port
  - added source1  aarch64-port-preview_rc1.tar.xz
 - more owned dirs in JRE (RH1064500) put into if x86_64 condition
 - duplicated rhino and pstack patch for aarch64 usage
-- SKIPP_JPG falg added to remove-in-tree-libraries
+- CHANGE_JPG flag added to remove-in-tree-libraries
+- chmod on sa-jdi.jar not done for aarch64
 
 * Mon Feb 17 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.2.pre01.f21
 - added pretrans script to copy config files (RH1038092)
