@@ -1291,7 +1291,6 @@ exit 0
 %dir %{_jvmdir}/%{sdkdir}/jre/lib/%{archinstall}
 %ifarch x86_64
 %dir %{_jvmdir}/%{sdkdir}/jre/lib/%{archinstall}/xawt
-%dir %{_jvmdir}/%{sdkdir}/jre/lib/%{archinstall}/ext
 %endif
 %{_jvmdir}/%{jrelnk}
 %{_jvmjardir}/%{jrelnk}
