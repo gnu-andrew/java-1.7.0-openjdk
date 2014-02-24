@@ -87,8 +87,10 @@
 
 %ifnarch %{ppc64le}
 %global with_pulseaudio 1
+%global with_rhino 1
 %else
 %global with_pulseaudio 0
+%global with_rhino 0
 %endif
 
 %ifarch %{jit_arches}
@@ -162,7 +164,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.4.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.5.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -300,7 +302,6 @@ BuildRequires: libxslt
 BuildRequires: xorg-x11-proto-devel
 BuildRequires: ant
 BuildRequires: libXinerama-devel
-BuildRequires: rhino
 BuildRequires: zip
 BuildRequires: fontconfig
 BuildRequires: xorg-x11-fonts-Type1
@@ -321,6 +322,10 @@ BuildRequires: pulseaudio-libs-devel >= 0.9.11
 # Zero-assembler build requirement.
 %ifnarch %{jit_arches}
 BuildRequires: libffi-devel >= 3.0.10
+%endif
+# Need system Rhino to rewrite
+%if %{with_rhino}
+BuildRequires: rhino
 %endif
 
 # cacerts build requirement.
@@ -488,7 +493,9 @@ Although working pretty fine, there are known issues with accessibility on, so d
 cp %{SOURCE7} .
 
 # Rhino patch
+%if %{with_rhino}
 %patch100
+%endif
 
 # pulseaudio support
 %if %{with_pulseaudio}
@@ -568,6 +575,8 @@ export ARCH_DATA_MODEL=64
 export CFLAGS="$CFLAGS -mieee"
 %endif
 
+%if %{with_rhino}
+
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
 
@@ -599,6 +608,8 @@ java -cp rewriter com.redhat.rewriter.ClassRewriter \
 (cd rhino/new
    jar cfm ../rhino.jar META-INF/MANIFEST.MF sun
 )
+
+%endif
 
 export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-openjdk
 
@@ -1385,6 +1396,9 @@ exit 0
 
 
 %changelog
+* Mon Feb 24 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0.5.pre02
+- Make Rhino optional and turn off on ppc64le
+
 * Fri Feb 21 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.4.pre02.f21
 - updated aarch64 port to upstream rc2
 
