@@ -162,7 +162,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.4.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.5.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -194,7 +194,7 @@ URL:      http://openjdk.java.net/
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}%{icedtea_version_presuffix}.tar.xz
-Source1:  aarch64-port-preview_rc2.tar.xz
+Source1:  aarch64-port-preview_rc3.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -1400,6 +1400,9 @@ exit 0
 
 
 %changelog
+* Wed Feb 26 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.5.pre02.f21
+- updated aarch64 port to upstream rc3
+
 * Fri Feb 21 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.4.pre02.f21
 - updated aarch64 port to upstream rc2
 
