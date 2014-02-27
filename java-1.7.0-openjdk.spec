@@ -162,7 +162,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.5.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.6.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -909,42 +909,6 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
     echo "" >> accessibility.properties
   popd
 
-%pretrans
-# as each JDk is going to unique directroy, we need to ensure config files will be handled by RPM correctly
-# see https://bugzilla.redhat.com/show_bug.cgi?id=1038092 for whole issue 
-# Check if there is already some installed JDK 
-# In posttrans, $1 cannot be used.
-ls -d %{_jvmdir}/%{name}-%{javaver}*%{_arch} >& /dev/null
-if [ "$?" = "0" ] ; then
-  # If there is already installed JDK, take newest
-  LATEST_PKG_DIR=`ls -d %{_jvmdir}/%{name}-%{javaver}*%{_arch} | sort --version-sort | tail -n 1`
-  # Copy over all config(+) files and ext dir, and let RPM deal with it
-  for file in jre/lib/calendars.properties          \
-              jre/lib/content-types.properties      \
-              jre/lib/flavormap.properties          \
-              jre/lib/logging.properties            \
-              jre/lib/net.properties                \
-              jre/lib/psfontj2d.properties          \
-              jre/lib/sound.properties              \
-              jre/lib/tz.properties                 \
-              jre/lib/deployment.properties         \
-              jre/lib/deployment.config             \
-              jre/lib/security/US_export_policy.jar \
-              jre/lib/security/java.policy          \
-              jre/lib/security/java.security        \
-              jre/lib/security/local_policy.jar     \
-              jre/lib/security/nss.cfg              \
-              jre/lib/ext; do
-    SOURCE=$LATEST_PKG_DIR/$file
-    if [ -e $SOURCE ]; then
-      DEST=%{_jvmdir}/%{uniquesuffix}/$file
-      # Create the directory
-      mkdir -p `dirname $DEST`
-      # Copy with -a to keep everything intact
-      cp -ar $SOURCE $DEST
-    fi;
-  done
-fi
 
 %post 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
@@ -1400,6 +1364,9 @@ exit 0
 
 
 %changelog
+* Fri Feb 27 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.6.pre02.f21
+- removed bash pretrans script. Will be replaced by lua + exec(cp) script
+
 * Wed Feb 26 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.5.pre02.f21
 - updated aarch64 port to upstream rc3
 
