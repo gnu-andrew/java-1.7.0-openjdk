@@ -162,7 +162,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.6.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.7.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -659,11 +659,9 @@ make \
 
 popd >& /dev/null
 
-%ifarch %{jit_arches}
-%ifnarch %{aarch64}
-chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
-%endif
-%endif
+if [ -e $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar ]; then 
+  chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar;
+fi
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
@@ -1364,6 +1362,9 @@ exit 0
 
 
 %changelog
+* Thu Mar 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.7.pre02.f21
+- chmod of sa-jdi.jar done only if exists
+
 * Fri Feb 27 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.6.pre02.f21
 - removed bash pretrans script. Will be replaced by lua + exec(cp) script
 
