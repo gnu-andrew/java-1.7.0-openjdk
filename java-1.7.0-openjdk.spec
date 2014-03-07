@@ -158,7 +158,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.3%{?dist}
+Release: %{icedtea_version}.4%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -634,6 +634,9 @@ make \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
+%ifarch %{arm}
+  ARM32JIT="false" \
+%endif
   %{debugbuild}
 
 popd >& /dev/null
@@ -1389,6 +1392,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri Mar 07 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.4.version}.1
+- Bring in ARM32 fix, with JIT port disabled
+
 * Fri Feb 07 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0pre.3.1
 - Expand power64 macro where we need to differentiate between big-endian and little-endian
 - Remove unnecessary overriding of Zero settings which break ppc64le
