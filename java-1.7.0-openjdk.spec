@@ -117,11 +117,15 @@
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
 %global updatever       51
+%global aarch64_updatever 60
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
 %global buildver        31
+%global aarch64_buildver 04
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
+
+%global aarch64_tag     rc4
 
 %global sdkdir          %{uniquesuffix}
 %global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
@@ -162,7 +166,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.8.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.9.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -194,7 +198,7 @@ URL:      http://openjdk.java.net/
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}%{icedtea_version_presuffix}.tar.xz
-Source1:  aarch64-port-preview_rc4.tar.xz
+Source1:  aarch64-port-preview_%{aarch64_tag}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -635,15 +639,25 @@ source jdk/make/jdk_generic_profile.sh
 # Restore old umask
 umask $oldumask
 
+# aarch64 is not based on icedtea, but on upstream 7u instead. Adjust
+# JDK_UPDATE_VERSION/BUILD_NUMBER/USER_RELEASE_SUFFIX to get an appropriate
+# version string.
+
 make \
   DISABLE_INTREE_EC=true \
   UNLIMITED_CRYPTO=true \
   ANT="/usr/bin/ant" \
+%ifnarch %{aarch64}
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
   JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
   JDK_BUILD_NUMBER=b`printf "%02d" %{buildver}` \
   JRE_RELEASE_VERSION=%{javaver}_`printf "%02d" %{updatever}`-b`printf "%02d" %{buildver}` \
+%else
+  JDK_UPDATE_VERSION="%{aarch64_updatever}" \
+  BUILD_NUMBER="b%{aarch64_buildver}" \
+  USER_RELEASE_SUFFIX="aarch64-%{aarch64_tag}" \
+%endif
   MILESTONE="fcs" \
   ALT_PARALLEL_COMPILE_JOBS="$NUM_PROC" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
@@ -1362,6 +1376,9 @@ exit 0
 
 
 %changelog
+* Fri Mar 07 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.9.pre02.f21
+- Improve output of `java -version` for aarch64
+
 * Thu Mar 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.8.pre02.f21
 - updated aarch64 port to upstream rc4
 
