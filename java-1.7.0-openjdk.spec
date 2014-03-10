@@ -5,6 +5,8 @@
 %global icedtea_version 2.5
 %global hg_tag icedtea-{icedtea_version}
 
+%global aarch64_release 831
+
 %global aarch64			aarch64 arm64 armv8
 #sometimes we need to distinguish big and little endian PPC64
 %global ppc64le			ppc64le
@@ -125,7 +127,6 @@
 %global priority        1700%{updatever}
 %global javaver         1.7.0
 
-%global aarch64_tag     rc4
 
 %global sdkdir          %{uniquesuffix}
 %global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
@@ -166,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.9.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.10.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -187,6 +188,8 @@ URL:      http://openjdk.java.net/
 #REPO=http://icedtea.classpath.org/hg/icedtea7-forest
 #current release
 #REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.4
+#aarch64
+#REPO=http://hg.openjdk.java.net/aarch64-port/jdk7u
 # hg clone $REPO/ openjdk -r %{hg_tag}
 # hg clone $REPO/corba/ openjdk/corba -r %{hg_tag}
 # hg clone $REPO/hotspot/ openjdk/hotspot -r %{hg_tag}
@@ -198,7 +201,7 @@ URL:      http://openjdk.java.net/
 # sh /git/java-1.7.0-openjdk/fX/fsg.sh
 # tar cJf openjdk-icedtea-%{icedtea_version}.tar.xz openjdk
 Source0:  openjdk-icedtea-%{icedtea_version}%{icedtea_version_presuffix}.tar.xz
-Source1:  aarch64-port-preview_%{aarch64_tag}.tar.xz
+Source1:  aarch64-port-jdk7u%{aarch64_updatever}-b%{aarch64_buildver}-aarch64-%{aarch64_release}.tar.xz
 
 # README file
 # This source is under maintainer's/java-team's control
@@ -656,7 +659,7 @@ make \
 %else
   JDK_UPDATE_VERSION="%{aarch64_updatever}" \
   BUILD_NUMBER="b%{aarch64_buildver}" \
-  USER_RELEASE_SUFFIX="aarch64-%{aarch64_tag}" \
+  USER_RELEASE_SUFFIX="aarch64-%{aarch64_release}" \
 %endif
   MILESTONE="fcs" \
   ALT_PARALLEL_COMPILE_JOBS="$NUM_PROC" \
@@ -1376,6 +1379,9 @@ exit 0
 
 
 %changelog
+* Mon Mar 10 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.10.pre02.f21
+- Update to latest aarch64 code.
+
 * Fri Mar 07 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.9.pre02.f21
 - Improve output of `java -version` for aarch64
 
