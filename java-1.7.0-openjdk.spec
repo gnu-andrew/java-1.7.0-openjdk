@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.10.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.11.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -924,6 +924,118 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
     echo "" >> accessibility.properties
   popd
 
+%pretrans headless -p <lua>
+-- see https://bugzilla.redhat.com/show_bug.cgi?id=1038092 for whole issue 
+
+local posix = require "posix"
+
+local currentjvm = "%{uniquesuffix}"
+local jvmdir = "%{_jvmdir}"
+local jvmDestdir = jvmdir
+local origname = "%{name}"
+local origjavaver = "%{javaver}"
+--trasnform substitute names to lua patterns
+local name = string.gsub(string.gsub(origname, "%-", "%%-"), "%.", "%%.")
+local javaver = string.gsub(origjavaver, "%.", "%%.")
+local arch ="%{_arch}"
+
+local jvms = { }
+
+local caredFiles = {"jre/lib/calendars.properties",
+              "jre/lib/content-types.properties",
+              "jre/lib/flavormap.properties",
+              "jre/lib/logging.properties",
+              "jre/lib/net.properties",
+              "jre/lib/psfontj2d.properties",
+              "jre/lib/sound.properties",
+              "jre/lib/tz.properties",
+              "jre/lib/deployment.properties",
+              "jre/lib/deployment.config",
+              "jre/lib/security/US_export_policy.jar",
+              "jre/lib/security/java.policy",
+              "jre/lib/security/java.security",
+              "jre/lib/security/local_policy.jar",
+              "jre/lib/security/nss.cfg,",
+              "jre/lib/ext"}
+
+function splitToTable(source, pattern)
+  local i1 = string.gmatch(source, pattern) 
+  local l1 = {}
+  for i in i1 do
+    table.insert(l1, i)
+  end
+  return l1
+end
+
+foundJvms = posix.dir(jvmdir);
+if (foundJvms == nil) then
+  return
+end
+for i,p in pairs(foundJvms) do
+-- regex similar to %{_jvmdir}/%{name}-%{javaver}*%{_arch} bash command
+  if (string.find(p, name.."%-"..javaver..".*"..arch) ~= nil ) then
+    table.insert(jvms, p)
+  end
+end
+
+if (#jvms <=0) then 
+--no jdk installed, bye
+  return
+end;
+
+--full names are like java-1.7.0-openjdk-1.7.0.60-2.4.5.1.fc20.x86_64
+table.sort(jvms , function(a,b) 
+-- version-sort
+-- split on non word: . - 
+  local l1 = splitToTable(a, "[^%.-]+") 
+  local l2 = splitToTable(b, "[^%.-]+") 
+  for x = 1, math.min(#l1, #l2) do
+    local l1x = tonumber(l1[x])
+    local l2x = tonumber(l2[x])
+    if (l1x ~= nil and l2x ~= nil)then
+--if hunks are numbers, go with them 
+      if (l1x < l2x) then return true; end
+      if (l1x > l2x) then return false; end
+    else
+      if (l1[x] < l2[x]) then return true; end
+      if (l1[x] > l2[x]) then return false; end
+    end
+-- if hunks are equals then move to another pair of hunks
+  end
+return a<b
+
+end)
+
+-- for i,file in pairs(jvms) do
+--   print(file)
+-- end
+
+latestjvm = jvms[#jvms]
+
+
+for i,file in pairs(caredFiles) do
+  local SOURCE=jvmdir.."/"..latestjvm.."/"..file
+  local DEST=jvmDestdir.."/"..currentjvm.."/"..file
+  local stat1 = posix.stat(SOURCE, "type");
+  if (stat1 ~= nil) then
+--if SOURCE exists, create DEST prent directories
+  local s = ""
+  local dirs = splitToTable(DEST, "[^/]+") 
+  for i,d in pairs(dirs) do
+    if (i == #dirs) then
+      break
+    end
+    s = s.."/"..d
+    local stat2 = posix.stat(s, "type");
+    if (stat2 == nil) then
+      posix.mkdir(s)
+    end
+  end
+-- Copy with -a to keep everything intact
+    os.execute("cp".." -ar "..SOURCE.." "..DEST)
+  end
+end
+
 
 %post 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
@@ -1379,6 +1491,9 @@ exit 0
 
 
 %changelog
+* Wed Mar 12 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.11.pre02.f21
+- added pretrans script to copy config files (RH1038092) - lua version
+
 * Mon Mar 10 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.10.pre02.f21
 - Update to latest aarch64 code.
 
