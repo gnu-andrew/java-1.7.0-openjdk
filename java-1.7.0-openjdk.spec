@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.11.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.12.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -935,8 +935,9 @@ local jvmDestdir = jvmdir
 local origname = "%{name}"
 local origjavaver = "%{javaver}"
 --trasnform substitute names to lua patterns
-local name = string.gsub(string.gsub(origname, "%-", "%%-"), "%.", "%%.")
-local javaver = string.gsub(origjavaver, "%.", "%%.")
+--all percentages must be doubled for case of RPM escapingg
+local name = string.gsub(string.gsub(origname, "%%-", "%%%%-"), "%%.", "%%%%.")
+local javaver = string.gsub(origjavaver, "%%.", "%%%%.")
 local arch ="%{_arch}"
 
 local jvms = { }
@@ -973,7 +974,8 @@ if (foundJvms == nil) then
 end
 for i,p in pairs(foundJvms) do
 -- regex similar to %{_jvmdir}/%{name}-%{javaver}*%{_arch} bash command
-  if (string.find(p, name.."%-"..javaver..".*"..arch) ~= nil ) then
+--all percentages must be doubled for case of RPM escapingg
+  if (string.find(p, name.."%%-"..javaver..".*"..arch) ~= nil ) then
     table.insert(jvms, p)
   end
 end
@@ -1491,6 +1493,9 @@ exit 0
 
 
 %changelog
+* Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.12.pre02.f21
+- all percentage chars in pretrans lua script doubled
+
 * Wed Mar 12 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.11.pre02.f21
 - added pretrans script to copy config files (RH1038092) - lua version
 
