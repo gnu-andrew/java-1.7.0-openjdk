@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.12.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.13.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -939,6 +939,7 @@ local origjavaver = "%{javaver}"
 local name = string.gsub(string.gsub(origname, "%%-", "%%%%-"), "%%.", "%%%%.")
 local javaver = string.gsub(origjavaver, "%%.", "%%%%.")
 local arch ="%{_arch}"
+local  debug = true;
 
 local jvms = { }
 
@@ -968,21 +969,46 @@ function splitToTable(source, pattern)
   return l1
 end
 
+if (debug) then
+  print("started")
+end;
+
 foundJvms = posix.dir(jvmdir);
 if (foundJvms == nil) then
+  if (debug) then
+    print("no, or nothing in "..jvmdir.." exit")
+  end;
   return
 end
+
+if (debug) then
+  print("found "..#foundJvms.."jvms")
+end;
+
 for i,p in pairs(foundJvms) do
 -- regex similar to %{_jvmdir}/%{name}-%{javaver}*%{_arch} bash command
 --all percentages must be doubled for case of RPM escapingg
   if (string.find(p, name.."%%-"..javaver..".*"..arch) ~= nil ) then
+    if (debug) then
+      print("matched:  "..p)
+    end;
     table.insert(jvms, p)
+  else
+    if (debug) then
+      print("NOT matched:  "..p)
+    end;
   end
 end
 
 if (#jvms <=0) then 
---no jdk installed, bye
+  if (debug) then
+    print("no matching jdk in "..jvmdir.." exit")
+  end;
   return
+end;
+
+if (debug) then
+  print("matched "..#jvms.." jdk in "..jvmdir)
 end;
 
 --full names are like java-1.7.0-openjdk-1.7.0.60-2.4.5.1.fc20.x86_64
@@ -1008,9 +1034,12 @@ return a<b
 
 end)
 
--- for i,file in pairs(jvms) do
---   print(file)
--- end
+if (debug) then
+  print("sorted lsit of jvms")
+  for i,file in pairs(jvms) do
+    print(file)
+  end
+end
 
 latestjvm = jvms[#jvms]
 
@@ -1018,9 +1047,15 @@ latestjvm = jvms[#jvms]
 for i,file in pairs(caredFiles) do
   local SOURCE=jvmdir.."/"..latestjvm.."/"..file
   local DEST=jvmDestdir.."/"..currentjvm.."/"..file
+  if (debug) then
+    print("going to copy "..SOURCE)
+    print("to  "..DEST)
+  end;
   local stat1 = posix.stat(SOURCE, "type");
   if (stat1 ~= nil) then
---if SOURCE exists, create DEST prent directories
+  if (debug) then
+    print(SOURCE.." exists")
+  end;
   local s = ""
   local dirs = splitToTable(DEST, "[^/]+") 
   for i,d in pairs(dirs) do
@@ -1030,11 +1065,26 @@ for i,file in pairs(caredFiles) do
     s = s.."/"..d
     local stat2 = posix.stat(s, "type");
     if (stat2 == nil) then
+      if (debug) then
+        print(s.." does not exists, creating")
+      end;
       posix.mkdir(s)
+    else
+      if (debug) then
+        print(s.." exists,not creating")
+      end;
     end
   end
 -- Copy with -a to keep everything intact
-    os.execute("cp".." -ar "..SOURCE.." "..DEST)
+    local exe = "cp".." -ar "..SOURCE.." "..DEST
+    if (debug) then
+      print("executing "..exe)
+    end;    
+    os.execute(exe)
+  else
+    if (debug) then
+      print(SOURCE.." does not exists")
+    end;
   end
 end
 
@@ -1161,6 +1211,11 @@ exit 0
   alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
   alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
 
+  # avoid unnecessary failure
+  if [ -e %{_jvmdir}/%{uniquesuffix} ]  ; then 
+    # as lua copied all necessary config files, we do not wont the double rpmnew and rpm.save
+    rm -rf %{_jvmdir}/%{uniquesuffix}  
+  fi
 exit 0
 
 %posttrans
@@ -1493,6 +1548,10 @@ exit 0
 
 
 %changelog
+* Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.13.pre02.f21
+- added debuginfo to lua script
+- added rm -rf to posunn of headless
+
 * Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.12.pre02.f21
 - all percentage chars in pretrans lua script doubled
 
