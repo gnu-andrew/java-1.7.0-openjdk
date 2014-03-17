@@ -80,10 +80,11 @@ diff --git a/src/os/linux/vm/os_linux.cpp b/src/os/linux/vm/os_linux.cpp
 diff --git a/src/share/vm/runtime/os.cpp b/src/share/vm/runtime/os.cpp
 --- openjdk/hotspot/src/share/vm/runtime/os.cpp
 +++ openjdk/hotspot/src/share/vm/runtime/os.cpp
-@@ -1353,43 +1353,6 @@
+@@ -1331,41 +1331,3 @@
+   }
    return result;
  }
- 
+-
 -// Read file line by line, if line is longer than bsize,
 -// skip rest of line.
 -int os::get_line_chars(int fd, char* buf, const size_t bsize){
@@ -121,10 +122,6 @@ diff --git a/src/share/vm/runtime/os.cpp b/src/share/vm/runtime/os.cpp
 -
 -  return (int) i;
 -}
- 
- void os::SuspendedThreadTask::run() {
-   assert(Threads_lock->owned_by_self() || (_thread == VMThread::vm_thread()), "must have threads lock to call this");
-
 diff --git a/src/share/vm/runtime/os.hpp b/src/share/vm/runtime/os.hpp
 --- openjdk/hotspot/src/share/vm/runtime/os.hpp
 +++ openjdk/hotspot/src/share/vm/runtime/os.hpp
@@ -139,4 +136,3 @@ diff --git a/src/share/vm/runtime/os.hpp b/src/share/vm/runtime/os.hpp
    // Extensions
  #include "runtime/os_ext.hpp"
  
-

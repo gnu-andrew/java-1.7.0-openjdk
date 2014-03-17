@@ -1,0 +1,26 @@
+--- openjdk/hotspot/src/cpu/zero/vm/asm_helper.cpp.orig	2014-03-05 15:03:20.082534757 +0000
++++ openjdk/hotspot/src/cpu/zero/vm/asm_helper.cpp	2014-02-18 19:49:46.776126171 +0000
+@@ -603,7 +621,7 @@
+   print_def("CONSTANTPOOL_CACHE", offset_of(constantPoolOopDesc, _cache));
+   print_def("CONSTANTPOOL_POOL_HOLDER", offset_of(constantPoolOopDesc, _pool_holder));
+   print_def("CONSTANTPOOL_BASE", sizeof(constantPoolOopDesc));
+-  print_def("CP_CACHE_VOLATILE_FIELD_FLAG_BIT", ConstantPoolCacheEntry::volatileField);
++  print_def("CP_CACHE_VOLATILE_FIELD_FLAG_BIT", ConstantPoolCacheEntry::is_volatile_shift);
+   print_def("CP_CACHE_FLAGS", offset_of(ConstantPoolCacheEntry, _flags));
+   nl();
+   print_def("CP_OFFSET", in_bytes(constantPoolCacheOopDesc::base_offset()));
+@@ -704,10 +722,10 @@
+ 	print_def("class_fully_initialized",	instanceKlass::fully_initialized);
+ 	print_def("class_init_error",		instanceKlass::initialization_error);
+ 	nl();
+-	print_def("flag_methodInterface",	1 << ConstantPoolCacheEntry::methodInterface);
+-	print_def("flag_volatileField",		1 << ConstantPoolCacheEntry::volatileField);
+-	print_def("flag_vfinalMethod",		1 << ConstantPoolCacheEntry::vfinalMethod);
+-	print_def("flag_finalField",		1 << ConstantPoolCacheEntry::finalField);
++	print_def("flag_methodInterface",	1 << ConstantPoolCacheEntry::has_method_type_shift);
++	print_def("flag_volatileField",		1 << ConstantPoolCacheEntry::is_volatile_shift);
++	print_def("flag_vfinalMethod",		1 << ConstantPoolCacheEntry::is_vfinal_shift);
++	print_def("flag_finalField",		1 << ConstantPoolCacheEntry::is_final_shift);
+ 	nl();
+ 	print_def("INVOCATIONCOUNTER_COUNTINCREMENT", InvocationCounter::count_increment);
+ 	nl();
