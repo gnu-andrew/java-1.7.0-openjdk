@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.13.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.14.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -215,7 +215,7 @@ Source5: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
 # last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
-Source6: systemtap-tapset-2013-10-02.tar.gz
+Source6: systemtap-tapset-2014-03-19.tar.xz
 
 # .desktop files. 
 Source7:  policytool.desktop
@@ -519,7 +519,7 @@ tar xzf %{SOURCE5}
 # Extract systemtap tapsets
 %if %{with_systemtap}
 
-tar xzf %{SOURCE6}
+tar xf %{SOURCE6}
 
 for file in tapset/*.in; do
 
@@ -1548,6 +1548,9 @@ exit 0
 
 
 %changelog
+* Thu Mar 19 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.14.pre02.f21
+- Fix trailing space in filename in systemtap-tapset tarball
+
 * Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.13.pre02.f21
 - added debuginfo to lua script
 - added rm -rf to posunn of headless
