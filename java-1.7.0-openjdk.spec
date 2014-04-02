@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.15.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.16.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -343,6 +343,7 @@ Requires: fontconfig
 Requires: xorg-x11-fonts-Type1
 #requires rest of java
 Requires: %{name}-headless = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 
 
 # Standard JPackage base provides.
@@ -411,6 +412,7 @@ Group:   Development/Tools
 
 # Require base package.
 Requires:         %{name} = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 # Post requires alternatives to install tool alternatives.
 Requires(post):   %{_sbindir}/alternatives
 # Postun requires alternatives to uninstall tool alternatives.
@@ -434,6 +436,7 @@ Summary: OpenJDK Demos
 Group:   Development/Languages
 
 Requires: %{name} = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 
 %description demo
 The OpenJDK demos.
@@ -453,6 +456,7 @@ Group:   Documentation
 Requires: jpackage-utils
 BuildArch: noarch
 
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 # Post requires alternatives to install javadoc alternative.
 Requires(post):   %{_sbindir}/alternatives
 # Postun requires alternatives to uninstall javadoc alternative.
@@ -469,6 +473,7 @@ The OpenJDK API documentation.
 Summary: OpenJDK accessibility connector
 Requires: java-atk-wrapper
 Requires: %{name} = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 
 %description accessibility
 Enables accessibility support in OpenJDK by using java-at-wrapper. This allows compatible at-spi2 based accessibility programs to work for AWT and Swing-based programs.
@@ -1211,6 +1216,11 @@ exit 0
   alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
   alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
 
+  # avoid unnecessary failure
+  if [ -e %{_jvmdir}/%{uniquesuffix} ]  ; then 
+    # as lua copied all necessary config files, we do not wont the double rpmnew and rpm.save
+    rm -rf %{_jvmdir}/%{uniquesuffix}  
+  fi
 exit 0
 
 %posttrans
@@ -1543,6 +1553,10 @@ exit 0
 
 
 %changelog
+* Wed Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.16.pre02.f21
+- returned rm -rf to posunn of headless
+- added OrderWithRequires on headless where possible
+
 * Wed Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.15.pre02.f21
 - removed rm -rf to posunn of headless
 
