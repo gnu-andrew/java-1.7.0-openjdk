@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.14.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.15.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1211,11 +1211,6 @@ exit 0
   alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
   alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
 
-  # avoid unnecessary failure
-  if [ -e %{_jvmdir}/%{uniquesuffix} ]  ; then 
-    # as lua copied all necessary config files, we do not wont the double rpmnew and rpm.save
-    rm -rf %{_jvmdir}/%{uniquesuffix}  
-  fi
 exit 0
 
 %posttrans
@@ -1548,6 +1543,9 @@ exit 0
 
 
 %changelog
+* Thu Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.15.pre02.f21
+- removed rm -rf to posunn of headless
+
 * Thu Mar 19 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.14.pre02.f21
 - Fix trailing space in filename in systemtap-tapset tarball
 
