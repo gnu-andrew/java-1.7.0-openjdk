@@ -1543,10 +1543,10 @@ exit 0
 
 
 %changelog
-* Thu Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.15.pre02.f21
+* Wed Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.15.pre02.f21
 - removed rm -rf to posunn of headless
 
-* Thu Mar 19 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.14.pre02.f21
+* Wed Mar 19 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.14.pre02.f21
 - Fix trailing space in filename in systemtap-tapset tarball
 
 * Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.13.pre02.f21
