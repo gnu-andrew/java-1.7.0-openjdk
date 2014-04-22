@@ -1,7 +1,7 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version_presuffix pre02
+%global icedtea_version_presuffix pre04
 %global icedtea_version 2.5
 %global hg_tag icedtea-{icedtea_version}
 
@@ -167,7 +167,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.16.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.17.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -278,8 +278,6 @@ Patch200: abrt_friendly_hs_log_jdk7.patch
 # mixer
 Patch300: pulse-soundproperties.patch
 
-#Workaround RH902004
-Patch402: gstackbounds.patch
 Patch403: PStack-808293.patch
 Patch4030: PStack-808293-aarch64.patch
 # End of tmp patches
@@ -561,11 +559,6 @@ tar xzf %{SOURCE9}
 %ifnarch %{aarch64}
 #friendly hserror is not applicable in head, needs to be revisited
 %patch200
-%endif
-
-%ifnarch %{aarch64}
-#seems to be upstreamed
-%patch402
 %endif
 
 %ifarch %{aarch64}
@@ -1553,6 +1546,11 @@ exit 0
 
 
 %changelog
+* Tue Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.17.pre04.f21
+- Updated to pre04
+- adapted patch100, rhino.patch
+- removed upstreamed patch402 gstackbounds.patch
+
 * Wed Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.16.pre02.f21
 - returned rm -rf to posunn of headless
 - added OrderWithRequires on headless where possible
