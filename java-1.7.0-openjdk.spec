@@ -1,9 +1,11 @@
 # If debug is 1, OpenJDK is built with all debug info present.
 %global debug 0
 
-%global icedtea_version_presuffix pre02
+%global icedtea_version_presuffix pre04
 %global icedtea_version 2.5.0
 %global hg_tag icedtea-{icedtea_version}
+
+%global aarch64_release 831
 
 %global aarch64			aarch64 arm64 armv8
 #sometimes we need to distinguish big and little endian PPC64
@@ -119,11 +121,13 @@
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
 %global updatever       60
-#Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        03
+%global buildver        15
+%global aarch64_updatever 60
+%global aarch64_buildver 04
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
+
 
 %global sdkdir          %{uniquesuffix}
 %global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
@@ -164,7 +168,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.5.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.6.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -185,6 +189,8 @@ URL:      http://openjdk.java.net/
 #REPO=http://icedtea.classpath.org/hg/icedtea7-forest
 #current release
 #REPO=http://icedtea.classpath.org/hg/release/icedtea7-forest-2.4
+#aarch64
+#REPO=http://hg.openjdk.java.net/aarch64-port/jdk7u
 # hg clone $REPO/ openjdk -r %{hg_tag}
 # hg clone $REPO/corba/ openjdk/corba -r %{hg_tag}
 # hg clone $REPO/hotspot/ openjdk/hotspot -r %{hg_tag}
@@ -215,7 +221,7 @@ Source8: class-rewriter.tar.gz
 
 # Systemtap tapsets. Zipped up to keep it small.
 # last update from http://icedtea.classpath.org/hg/icedtea7/file/8599fdfc398d/tapset
-Source9: systemtap-tapset-2013-10-02.tar.gz
+Source9: systemtap-tapset-2014-03-19.tar.xz
 
 # .desktop files. 
 Source10: policytool.desktop
@@ -276,11 +282,6 @@ Patch200: abrt_friendly_hs_log_jdk7.patch
 # Make the ALSA based mixer the default when building with the pulseaudio based
 # mixer
 Patch300: pulse-soundproperties.patch
-
-#Workaround RH902004
-Patch402: gstackbounds.patch
-Patch403: PStack-808293.patch
-# End of tmp patches
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -344,6 +345,7 @@ Requires: fontconfig
 Requires: xorg-x11-fonts-Type1
 #requires rest of java
 Requires: %{name}-headless = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 
 
 # Standard JPackage base provides.
@@ -412,6 +414,7 @@ Group:   Development/Tools
 
 # Require base package.
 Requires:         %{name} = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 # Post requires alternatives to install tool alternatives.
 Requires(post):   %{_sbindir}/alternatives
 # Postun requires alternatives to uninstall tool alternatives.
@@ -435,6 +438,7 @@ Summary: OpenJDK Demos
 Group:   Development/Languages
 
 Requires: %{name} = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 
 %description demo
 The OpenJDK demos.
@@ -454,6 +458,7 @@ Group:   Documentation
 Requires: jpackage-utils
 BuildArch: noarch
 
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 # Post requires alternatives to install javadoc alternative.
 Requires(post):   %{_sbindir}/alternatives
 # Postun requires alternatives to uninstall javadoc alternative.
@@ -470,6 +475,7 @@ The OpenJDK API documentation.
 Summary: OpenJDK accessibility connector
 Requires: java-atk-wrapper
 Requires: %{name} = %{epoch}:%{version}-%{release}
+OrderWithRequires: %{name}-headless = %{epoch}:%{version}-%{release}
 
 %description accessibility
 Enables accessibility support in OpenJDK by using java-at-wrapper. This allows compatible at-spi2 based accessibility programs to work for AWT and Swing-based programs.
@@ -515,7 +521,7 @@ tar xzf %{SOURCE8}
 # Extract systemtap tapsets
 %if %{with_systemtap}
 
-tar xzf %{SOURCE9}
+tar xf %{SOURCE6}
 
 for file in tapset/*.in; do
 
@@ -553,9 +559,6 @@ tar xzf %{SOURCE13}
 #friendly hserror is not applicable in head, needs to be revisited
 %patch200
 %endif
-
-%patch402
-%patch403
 
 %build
 # How many cpu's do we have?
@@ -631,15 +634,25 @@ source jdk/make/jdk_generic_profile.sh
 # Restore old umask
 umask $oldumask
 
+# aarch64 is not based on icedtea, but on upstream 7u instead. Adjust
+# JDK_UPDATE_VERSION/BUILD_NUMBER/USER_RELEASE_SUFFIX to get an appropriate
+# version string.
+
 make \
   DISABLE_INTREE_EC=true \
   UNLIMITED_CRYPTO=true \
   ANT="/usr/bin/ant" \
+%ifnarch %{aarch64}
   DISTRO_NAME="Fedora" \
   DISTRO_PACKAGE_VERSION="fedora-%{release}-%{_arch} u%{updatever}-b%{buildver}" \
   JDK_UPDATE_VERSION=`printf "%02d" %{updatever}` \
   BUILD_NUMBER=b`printf "%02d" %{buildver}` \
   JRE_RELEASE_VERSION=%{javaver}_`printf "%02d" %{updatever}`-b`printf "%02d" %{buildver}` \
+%else
+  JDK_UPDATE_VERSION="%{aarch64_updatever}" \
+  BUILD_NUMBER="b%{aarch64_buildver}" \
+  USER_RELEASE_SUFFIX="aarch64-%{aarch64_release}" \
+%endif
   MILESTONE="fcs" \
   ALT_PARALLEL_COMPILE_JOBS="$NUM_PROC" \
   HOTSPOT_BUILD_JOBS="$NUM_PROC" \
@@ -655,11 +668,9 @@ make \
 
 popd >& /dev/null
 
-%ifarch %{jit_arches}
-%ifnarch %{power64}
-chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar
-%endif
-%endif
+if [ -e $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar ]; then 
+  chmod 644 $(pwd)/%{buildoutputdir}/j2sdk-image/lib/sa-jdi.jar;
+fi
 
 export JAVA_HOME=$(pwd)/%{buildoutputdir}/j2sdk-image
 
@@ -905,42 +916,170 @@ find $RPM_BUILD_ROOT%{_jvmdir}/%{sdkdir}/demo \
     echo "" >> accessibility.properties
   popd
 
-%pretrans
-# as each JDk is going to unique directroy, we need to ensure config files will be handled by RPM correctly
-# see https://bugzilla.redhat.com/show_bug.cgi?id=1038092 for whole issue 
-# Check if there is already some installed JDK 
-# In posttrans, $1 cannot be used.
-ls -d %{_jvmdir}/%{name}-%{javaver}*%{_arch} >& /dev/null
-if [ "$?" = "0" ] ; then
-  # If there is already installed JDK, take newest
-  LATEST_PKG_DIR=`ls -d %{_jvmdir}/%{name}-%{javaver}*%{_arch} | sort --version-sort | tail -n 1`
-  # Copy over all config(+) files and ext dir, and let RPM deal with it
-  for file in jre/lib/calendars.properties          \
-              jre/lib/content-types.properties      \
-              jre/lib/flavormap.properties          \
-              jre/lib/logging.properties            \
-              jre/lib/net.properties                \
-              jre/lib/psfontj2d.properties          \
-              jre/lib/sound.properties              \
-              jre/lib/tz.properties                 \
-              jre/lib/deployment.properties         \
-              jre/lib/deployment.config             \
-              jre/lib/security/US_export_policy.jar \
-              jre/lib/security/java.policy          \
-              jre/lib/security/java.security        \
-              jre/lib/security/local_policy.jar     \
-              jre/lib/security/nss.cfg              \
-              jre/lib/ext; do
-    SOURCE=$LATEST_PKG_DIR/$file
-    if [ -e $SOURCE ]; then
-      DEST=%{_jvmdir}/%{uniquesuffix}/$file
-      # Create the directory
-      mkdir -p `dirname $DEST`
-      # Copy with -a to keep everything intact
-      cp -ar $SOURCE $DEST
-    fi;
-  done
-fi
+%pretrans headless -p <lua>
+-- see https://bugzilla.redhat.com/show_bug.cgi?id=1038092 for whole issue 
+
+local posix = require "posix"
+
+local currentjvm = "%{uniquesuffix}"
+local jvmdir = "%{_jvmdir}"
+local jvmDestdir = jvmdir
+local origname = "%{name}"
+local origjavaver = "%{javaver}"
+--trasnform substitute names to lua patterns
+--all percentages must be doubled for case of RPM escapingg
+local name = string.gsub(string.gsub(origname, "%%-", "%%%%-"), "%%.", "%%%%.")
+local javaver = string.gsub(origjavaver, "%%.", "%%%%.")
+local arch ="%{_arch}"
+local  debug = true;
+
+local jvms = { }
+
+local caredFiles = {"jre/lib/calendars.properties",
+              "jre/lib/content-types.properties",
+              "jre/lib/flavormap.properties",
+              "jre/lib/logging.properties",
+              "jre/lib/net.properties",
+              "jre/lib/psfontj2d.properties",
+              "jre/lib/sound.properties",
+              "jre/lib/tz.properties",
+              "jre/lib/deployment.properties",
+              "jre/lib/deployment.config",
+              "jre/lib/security/US_export_policy.jar",
+              "jre/lib/security/java.policy",
+              "jre/lib/security/java.security",
+              "jre/lib/security/local_policy.jar",
+              "jre/lib/security/nss.cfg,",
+              "jre/lib/ext"}
+
+function splitToTable(source, pattern)
+  local i1 = string.gmatch(source, pattern) 
+  local l1 = {}
+  for i in i1 do
+    table.insert(l1, i)
+  end
+  return l1
+end
+
+if (debug) then
+  print("started")
+end;
+
+foundJvms = posix.dir(jvmdir);
+if (foundJvms == nil) then
+  if (debug) then
+    print("no, or nothing in "..jvmdir.." exit")
+  end;
+  return
+end
+
+if (debug) then
+  print("found "..#foundJvms.."jvms")
+end;
+
+for i,p in pairs(foundJvms) do
+-- regex similar to %{_jvmdir}/%{name}-%{javaver}*%{_arch} bash command
+--all percentages must be doubled for case of RPM escapingg
+  if (string.find(p, name.."%%-"..javaver..".*"..arch) ~= nil ) then
+    if (debug) then
+      print("matched:  "..p)
+    end;
+    table.insert(jvms, p)
+  else
+    if (debug) then
+      print("NOT matched:  "..p)
+    end;
+  end
+end
+
+if (#jvms <=0) then 
+  if (debug) then
+    print("no matching jdk in "..jvmdir.." exit")
+  end;
+  return
+end;
+
+if (debug) then
+  print("matched "..#jvms.." jdk in "..jvmdir)
+end;
+
+--full names are like java-1.7.0-openjdk-1.7.0.60-2.4.5.1.fc20.x86_64
+table.sort(jvms , function(a,b) 
+-- version-sort
+-- split on non word: . - 
+  local l1 = splitToTable(a, "[^%.-]+") 
+  local l2 = splitToTable(b, "[^%.-]+") 
+  for x = 1, math.min(#l1, #l2) do
+    local l1x = tonumber(l1[x])
+    local l2x = tonumber(l2[x])
+    if (l1x ~= nil and l2x ~= nil)then
+--if hunks are numbers, go with them 
+      if (l1x < l2x) then return true; end
+      if (l1x > l2x) then return false; end
+    else
+      if (l1[x] < l2[x]) then return true; end
+      if (l1[x] > l2[x]) then return false; end
+    end
+-- if hunks are equals then move to another pair of hunks
+  end
+return a<b
+
+end)
+
+if (debug) then
+  print("sorted lsit of jvms")
+  for i,file in pairs(jvms) do
+    print(file)
+  end
+end
+
+latestjvm = jvms[#jvms]
+
+
+for i,file in pairs(caredFiles) do
+  local SOURCE=jvmdir.."/"..latestjvm.."/"..file
+  local DEST=jvmDestdir.."/"..currentjvm.."/"..file
+  if (debug) then
+    print("going to copy "..SOURCE)
+    print("to  "..DEST)
+  end;
+  local stat1 = posix.stat(SOURCE, "type");
+  if (stat1 ~= nil) then
+  if (debug) then
+    print(SOURCE.." exists")
+  end;
+  local s = ""
+  local dirs = splitToTable(DEST, "[^/]+") 
+  for i,d in pairs(dirs) do
+    if (i == #dirs) then
+      break
+    end
+    s = s.."/"..d
+    local stat2 = posix.stat(s, "type");
+    if (stat2 == nil) then
+      if (debug) then
+        print(s.." does not exists, creating")
+      end;
+      posix.mkdir(s)
+    else
+      if (debug) then
+        print(s.." exists,not creating")
+      end;
+    end
+  end
+-- Copy with -a to keep everything intact
+    local exe = "cp".." -ar "..SOURCE.." "..DEST
+    if (debug) then
+      print("executing "..exe)
+    end;    
+    os.execute(exe)
+  else
+    if (debug) then
+      print(SOURCE.." does not exists")
+    end;
+  end
+end
+
 
 %post 
 update-desktop-database %{_datadir}/applications &> /dev/null || :
@@ -1064,6 +1203,11 @@ exit 0
   alternatives --remove jre_%{javaver} %{_jvmdir}/%{jredir}
   alternatives --remove jre_%{javaver}_%{origin} %{_jvmdir}/%{jrelnk}
 
+  # avoid unnecessary failure
+  if [ -e %{_jvmdir}/%{uniquesuffix} ]  ; then 
+    # as lua copied all necessary config files, we do not wont the double rpmnew and rpm.save
+    rm -rf %{_jvmdir}/%{uniquesuffix}  
+  fi
 exit 0
 
 %posttrans
@@ -1396,6 +1540,49 @@ exit 0
 
 
 %changelog
+* Tue Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.17.pre04.f21
+- Updated to pre04
+- adapted patch100, rhino.patch
+- removed upstreamed patch402 gstackbounds.patch
+
+* Wed Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.16.pre02.f21
+- returned rm -rf to posunn of headless
+- added OrderWithRequires on headless where possible
+
+* Wed Apr 2 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.15.pre02.f21
+- removed rm -rf to posunn of headless
+
+* Wed Mar 19 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.14.pre02.f21
+- Fix trailing space in filename in systemtap-tapset tarball
+
+* Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.13.pre02.f21
+- added debuginfo to lua script
+- added rm -rf to posunn of headless
+
+* Thu Mar 13 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.12.pre02.f21
+- all percentage chars in pretrans lua script doubled
+
+* Wed Mar 12 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.11.pre02.f21
+- added pretrans script to copy config files (RH1038092) - lua version
+
+* Mon Mar 10 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.10.pre02.f21
+- Update to latest aarch64 code.
+
+* Fri Mar 07 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.9.pre02.f21
+- Improve output of `java -version` for aarch64
+
+* Thu Mar 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.8.pre02.f21
+- updated aarch64 port to upstream rc4
+
+* Thu Mar 06 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.7.pre02.f21
+- chmod of sa-jdi.jar done only if exists
+
+* Fri Feb 28 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.6.pre02.f21
+- removed bash pretrans script. Will be replaced by lua + exec(cp) script
+
+* Wed Feb 26 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.5.pre02.f21
+- updated aarch64 port to upstream rc3
+
 * Mon Feb 24 2014 Andrew John Hughes <gnu.andrew@redhat.com> - 1:1.7.0.60-2.5.0.5.pre02
 - Make Rhino optional and turn off on ppc64le
 
