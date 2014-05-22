@@ -727,7 +727,7 @@ $JAVA_HOME/bin/javac -d . %{SOURCE12}
 $JAVA_HOME/bin/java TestCryptoLevel
 
 files=$(find $(pwd)/%{buildoutputdir}/j2sdk-image/ -type f | xargs file | grep ELF | cut -d: -f1)
-%{SOURCE14} $files
+bash %{SOURCE14} $files
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -1568,6 +1568,10 @@ exit 0
 
 
 %changelog
+* Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
+- bash added to line SOURCE14 $files, to prevent access denied
+- debug turned off
+
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
 - bumped release
 - changed  buildoutputdir to contains "-debug" in case of debug on
