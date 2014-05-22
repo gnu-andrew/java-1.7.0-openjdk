@@ -1,5 +1,5 @@
 # If debug is 1, OpenJDK is built with all debug info present.
-%global debug 0
+%global debug 1
 
 %global icedtea_version_presuffix pre04
 %global icedtea_version 2.5
@@ -85,8 +85,11 @@
 %global debugbuild %{nil}
 %endif
 
+%if %{debug}
+%global buildoutputdir openjdk/build/linux-%{archbuild}-debug
+%else
 %global buildoutputdir openjdk/build/linux-%{archbuild}
-
+%endif
 %ifnarch %{ppc64le}
 %global with_pulseaudio 1
 %else
@@ -166,7 +169,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.18.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.19.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -1564,6 +1567,13 @@ exit 0
 
 
 %changelog
+* Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
+- bumped release
+- changed  buildoutputdir to contains "-debug" in case of debug on
+- rewritten (long unmaintained) java-1.7.0-openjdk-debugdocs.patch and 
+  java-1.7.0-openjdk-debuginfo.patch
+- debug turned on (1)
+
 * Thu Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.18.pre04.f21
 - Added Omair's fix for RH1059925
  - added and used Source14, remove-origin-from-rpaths
