@@ -121,10 +121,10 @@
 
 # Standard JPackage naming and versioning defines.
 %global origin          openjdk
-%global updatever       51
+%global updatever       55
 %global aarch64_updatever 60
 #Fedora have an bogus 60 instead of updatever. Fix when updatever>=60 in version:
-%global buildver        31
+%global buildver        13
 %global aarch64_buildver 04
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
@@ -290,6 +290,9 @@ Patch4030: PStack-808293-aarch64.patch
 # Add hardcoded RPATHS to ELF files
 Patch412: add-final-location-rpaths.patch
 # End of tmp patches
+
+# Temporary copy of RH1064383 fix; remove after release of 2.4.8
+Patch413: rh1064383-prelink_fix.patch
 
 BuildRequires: autoconf
 BuildRequires: automake
@@ -579,6 +582,7 @@ tar xzf %{SOURCE9}
 %endif
 
 %patch412
+%patch413
 
 %build
 # How many cpu's do we have?
@@ -1567,12 +1571,12 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/ext/java-atk-wrapper.jar
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
-
 %changelog
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
 - python added to line SOURCE14 $files, to prevent access denied
 - debug turned off
 - added build requires for python
+- adde patch413, rh1064383-prelink_fix.patch (gnu_andrew)
 
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
 - bumped release
