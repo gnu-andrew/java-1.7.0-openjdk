@@ -682,6 +682,7 @@ make \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
+  JAVAC_WARNINGS_FATAL="false" \
   INSTALL_LOCATION=%{_jvmdir}/%{sdkdir} \
   %{debugbuild}
 
@@ -1573,6 +1574,7 @@ exit 0
 - rewritten (long unmaintained) java-1.7.0-openjdk-debugdocs.patch and 
   java-1.7.0-openjdk-debuginfo.patch
 - debug turned on (1)
+- added   JAVAC_WARNINGS_FATAl="false"  tomakefile options
 
 * Thu Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.18.pre04.f21
 - Added Omair's fix for RH1059925
