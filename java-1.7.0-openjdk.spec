@@ -1,5 +1,5 @@
 # If debug is 1, OpenJDK is built with all debug info present.
-%global debug 1
+%global debug 0
 
 %global icedtea_version_presuffix pre04
 %global icedtea_version 2.5
@@ -169,7 +169,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.19.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.20.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
