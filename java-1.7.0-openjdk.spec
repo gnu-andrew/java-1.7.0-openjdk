@@ -326,6 +326,7 @@ BuildRequires: pkgconfig >= 0.9.0
 BuildRequires: xorg-x11-utils
 BuildRequires: nss-devel
 BuildRequires: libattr-devel
+BuildRequires: python
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
@@ -727,7 +728,7 @@ $JAVA_HOME/bin/javac -d . %{SOURCE12}
 $JAVA_HOME/bin/java TestCryptoLevel
 
 files=$(find $(pwd)/%{buildoutputdir}/j2sdk-image/ -type f | xargs file | grep ELF | cut -d: -f1)
-bash %{SOURCE14} $files
+python %{SOURCE14} $files
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -1569,8 +1570,9 @@ exit 0
 
 %changelog
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
-- bash added to line SOURCE14 $files, to prevent access denied
+- python added to line SOURCE14 $files, to prevent access denied
 - debug turned off
+- added build requires for python
 
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
 - bumped release
