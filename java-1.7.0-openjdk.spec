@@ -636,7 +636,7 @@ java -cp rewriter com.redhat.rewriter.ClassRewriter \
    jar cfm ../rhino.jar META-INF/MANIFEST.MF sun
 )
 
-export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-openjdk
+export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-1.7.0-openjdk
 
 
 
@@ -1577,6 +1577,8 @@ exit 0
 - debug turned off
 - added build requires for python
 - adde patch413, rh1064383-prelink_fix.patch (gnu_andrew)
+- export JDK_TO_BUILD_WITH changed to /usr/lib/jvm/java-1.7.0-openjdk, to use jdk7
+  explicitly
 
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
 - bumped release
