@@ -11,7 +11,7 @@
 #sometimes we need to distinguish big and little endian PPC64
 %global ppc64le			ppc64le
 %global ppc64be			ppc64 ppc64p7
-%global multilib_arches		%{power64} sparc64 x86_64 
+%global multilib_arches %{power64} sparc64 x86_64 
 %global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{ppc64be} %{aarch64}
 
 #if 0, then links are set forcibly, if 1 ten only if status is auto
@@ -127,7 +127,6 @@
 %global priority        1700%{updatever}
 %global javaver         1.7.0
 
-
 %global sdkdir          %{uniquesuffix}
 %global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
 
@@ -167,7 +166,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.17.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.18.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -240,6 +239,9 @@ Source12: TestCryptoLevel.java
 
 Source13: java-abrt-luncher
 
+# Remove $ORIGIN from RPATHS
+Source14: remove-origin-from-rpaths
+
 # RPM/distribution specific patches
 
 # Allow TCK to pass with access bridge wired in
@@ -278,14 +280,19 @@ Patch200: abrt_friendly_hs_log_jdk7.patch
 # mixer
 Patch300: pulse-soundproperties.patch
 
+# Temporary patches
+
 Patch403: PStack-808293.patch
 Patch4030: PStack-808293-aarch64.patch
+# Add hardcoded RPATHS to ELF files
+Patch412: add-final-location-rpaths.patch
 # End of tmp patches
 
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: gcc-c++
 BuildRequires: alsa-lib-devel
+BuildRequires: chrpath
 BuildRequires: cups-devel
 BuildRequires: desktop-file-utils
 BuildRequires: giflib-devel
@@ -567,7 +574,7 @@ tar xzf %{SOURCE9}
 %patch403
 %endif
 
-
+%patch412
 
 %build
 # How many cpu's do we have?
@@ -586,6 +593,8 @@ export ARCH_DATA_MODEL=64
 %ifarch alpha
 export CFLAGS="$CFLAGS -mieee"
 %endif
+
+export CFLAGS="$CFLAGS -fstack-protector-strong"
 
 # Build the re-written rhino jar
 mkdir -p rhino/{old,new}
@@ -670,6 +679,7 @@ make \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
+  INSTALL_LOCATION=%{_jvmdir}/%{sdkdir} \
   %{debugbuild}
 
 popd >& /dev/null
@@ -712,6 +722,8 @@ rm -f %{buildoutputdir}/lib/fontconfig*.bfc
 $JAVA_HOME/bin/javac -d . %{SOURCE12}
 $JAVA_HOME/bin/java TestCryptoLevel
 
+files=$(find $(pwd)/%{buildoutputdir}/j2sdk-image/ -type f | xargs file | grep ELF | cut -d: -f1)
+%{SOURCE14} $files
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -937,7 +949,7 @@ local origjavaver = "%{javaver}"
 local name = string.gsub(string.gsub(origname, "%%-", "%%%%-"), "%%.", "%%%%.")
 local javaver = string.gsub(origjavaver, "%%.", "%%%%.")
 local arch ="%{_arch}"
-local  debug = true;
+local  debug = false;
 
 local jvms = { }
 
@@ -990,6 +1002,12 @@ for i,p in pairs(foundJvms) do
     if (debug) then
       print("matched:  "..p)
     end;
+    if (currentjvm ==  p) then
+      if (debug) then
+        print("this jdk is already installed. exiting lua script")
+      end;
+      return
+    end ;
     table.insert(jvms, p)
   else
     if (debug) then
@@ -1546,6 +1564,16 @@ exit 0
 
 
 %changelog
+* Thu Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.18.pre04.f21
+- Added Omair's fix for RH1059925
+ - added and used Source14, remove-origin-from-rpaths
+ - added and applied patch412 add-final-location-rpaths.patch
+ - added build requires chrpath
+ - adde INSTALL_LOCATION=_jvmdir/sdkdir to make swithces
+- added export CFLAGS="$CFLAGS -fstack-protector-strong", fwd from f20
+- disabled debug for lua script
+- fwd from f20 fix to lua script (do not copy to itself)
+
 * Tue Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.17.pre04.f21
 - Updated to pre04
 - adapted patch100, rhino.patch
