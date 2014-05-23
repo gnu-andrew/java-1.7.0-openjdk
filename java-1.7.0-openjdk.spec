@@ -169,7 +169,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.20.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.21.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -289,6 +289,7 @@ Patch403: PStack-808293.patch
 Patch4030: PStack-808293-aarch64.patch
 # Add hardcoded RPATHS to ELF files
 Patch412: add-final-location-rpaths.patch
+Patch4120: add-final-location-rpaths-aarch64.patch
 # End of tmp patches
 
 # Temporary copy of RH1064383 fix; remove after release of 2.4.8
@@ -581,7 +582,12 @@ tar xzf %{SOURCE9}
 %patch403
 %endif
 
+%ifarch %{aarch64}
+%patch4120
+%else
 %patch412
+%endif
+
 %patch413
 
 %build
@@ -1572,6 +1578,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri May 23 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.21.f21
+- Added aarch64-specfic version of the add-final-location-rpaths path
+
 * Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
 - python added to line SOURCE14 $files, to prevent access denied
 - debug turned off
