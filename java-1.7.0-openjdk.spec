@@ -5,7 +5,7 @@
 %global icedtea_version 2.5
 %global hg_tag icedtea-{icedtea_version}
 
-%global aarch64_release 831
+%global aarch64_release 832
 
 %global aarch64			aarch64 arm64 armv8
 #sometimes we need to distinguish big and little endian PPC64
@@ -169,7 +169,7 @@
 
 Name:    java-%{javaver}-%{origin}
 Version: %{javaver}.60
-Release: %{icedtea_version}.0.21.%{icedtea_version_presuffix}%{?dist}
+Release: %{icedtea_version}.0.22.%{icedtea_version_presuffix}%{?dist}
 # java-1.5.0-ibm from jpackage.org set Epoch to 1 for unknown reasons,
 # and this change was brought into RHEL-4.  java-1.5.0-ibm packages
 # also included the epoch in their virtual provides.  This created a
@@ -592,13 +592,8 @@ tar xzf %{SOURCE9}
 
 %build
 # How many cpu's do we have?
-%ifarch aarch64
-# temporary until real hardware lands
-export NUM_PROC=1
-%else
 export NUM_PROC=`/usr/bin/getconf _NPROCESSORS_ONLN 2> /dev/null || :`
 export NUM_PROC=${NUM_PROC:-1}
-%endif
 
 # Build IcedTea and OpenJDK.
 %ifarch s390x sparc64 alpha %{power64} %{aarch64}
@@ -1578,6 +1573,9 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
 %changelog
+* Fri May 30 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.22.f21
+- Updated aarch64 tarball
+
 * Fri May 23 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.21.f21
 - Added aarch64-specfic version of the add-final-location-rpaths path
 
