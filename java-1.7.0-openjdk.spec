@@ -5,14 +5,14 @@
 %global icedtea_version 2.5.0
 %global hg_tag icedtea-{icedtea_version}
 
-%global aarch64_release 831
+%global aarch64_release 832
 
 %global aarch64			aarch64 arm64 armv8
 #sometimes we need to distinguish big and little endian PPC64
 %global ppc64le			ppc64le
 %global ppc64be			ppc64 ppc64p7
 %global multilib_arches		%{power64} sparc64 x86_64 
-%global jit_arches		%{ix86} x86_64 sparcv9 sparc64 %{ppc64be}
+%global jit_arches		%{aarch64} %{ix86} x86_64 sparcv9 sparc64 %{ppc64be}
 
 #if 0, then links are set forcibly, if 1 ten only if status is auto
 %global graceful_links 1
@@ -85,8 +85,11 @@
 %global debugbuild %{nil}
 %endif
 
+%if %{debug}
+%global buildoutputdir openjdk/build/linux-%{archbuild}-debug
+%else
 %global buildoutputdir openjdk/build/linux-%{archbuild}
-
+%endif
 %ifnarch %{ppc64le}
 %global with_pulseaudio 1
 %global with_rhino 1
@@ -127,7 +130,6 @@
 # Keep priority on 6digits in case updatever>9
 %global priority        1700%{updatever}
 %global javaver         1.7.0
-
 
 %global sdkdir          %{uniquesuffix}
 %global jrelnk          jre-%{javaver}-%{origin}-%{version}-%{release}.%{_arch}
@@ -246,6 +248,9 @@ Source16: TestCryptoLevel.java
 
 Source17: java-abrt-launcher
 
+# Remove $ORIGIN from RPATHS
+Source14: remove-origin-from-rpaths
+
 # RPM/distribution specific patches
 
 # Allow TCK to pass with access bridge wired in
@@ -283,10 +288,21 @@ Patch200: abrt_friendly_hs_log_jdk7.patch
 # mixer
 Patch300: pulse-soundproperties.patch
 
+# Temporary patches
+
+# Add hardcoded RPATHS to ELF files
+Patch412: add-final-location-rpaths.patch
+Patch4120: add-final-location-rpaths-aarch64.patch
+# End of tmp patches
+
+# Temporary copy of RH1064383 fix; remove after release of 2.4.8
+Patch413: rh1064383-prelink_fix.patch
+
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: gcc-c++
 BuildRequires: alsa-lib-devel
+BuildRequires: chrpath
 BuildRequires: cups-devel
 BuildRequires: desktop-file-utils
 BuildRequires: giflib-devel
@@ -316,6 +332,7 @@ BuildRequires: xorg-x11-utils
 BuildRequires: hostname
 BuildRequires: nss-devel
 BuildRequires: libattr-devel
+BuildRequires: python
 # PulseAudio build requirements.
 %if %{with_pulseaudio}
 BuildRequires: pulseaudio-libs-devel >= 0.9.11
@@ -560,15 +577,18 @@ tar xzf %{SOURCE13}
 %patch200
 %endif
 
+%ifarch %{aarch64}
+%patch4120
+%else
+%patch412
+%endif
+
+%patch413
+
 %build
 # How many cpu's do we have?
-%ifarch aarch64
-# temporary until real hardware lands
-export NUM_PROC=1
-%else
 export NUM_PROC=`/usr/bin/getconf _NPROCESSORS_ONLN 2> /dev/null || :`
 export NUM_PROC=${NUM_PROC:-1}
-%endif
 
 # Build IcedTea and OpenJDK.
 %ifarch s390x sparc64 alpha %{power64} %{aarch64}
@@ -577,6 +597,8 @@ export ARCH_DATA_MODEL=64
 %ifarch alpha
 export CFLAGS="$CFLAGS -mieee"
 %endif
+
+export CFLAGS="$CFLAGS -fstack-protector-strong"
 
 %if %{with_rhino}
 
@@ -614,9 +636,7 @@ java -cp rewriter com.redhat.rewriter.ClassRewriter \
 
 %endif
 
-export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-openjdk
-
-
+export JDK_TO_BUILD_WITH=/usr/lib/jvm/java-1.7.0-openjdk
 
 pushd openjdk >& /dev/null
 
@@ -664,6 +684,8 @@ make \
   DEBUG_CLASSFILES="true" \
   DEBUG_BINARIES="true" \
   STRIP_POLICY="no_strip" \
+  JAVAC_WARNINGS_FATAL="false" \
+  INSTALL_LOCATION=%{_jvmdir}/%{sdkdir} \
   %{debugbuild}
 
 popd >& /dev/null
@@ -706,6 +728,8 @@ rm -f %{buildoutputdir}/lib/fontconfig*.bfc
 $JAVA_HOME/bin/javac -d . %{SOURCE16}
 $JAVA_HOME/bin/java TestCryptoLevel
 
+files=$(find $(pwd)/%{buildoutputdir}/j2sdk-image/ -type f | xargs file | grep ELF | cut -d: -f1)
+python %{SOURCE14} $files
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -931,7 +955,7 @@ local origjavaver = "%{javaver}"
 local name = string.gsub(string.gsub(origname, "%%-", "%%%%-"), "%%.", "%%%%.")
 local javaver = string.gsub(origjavaver, "%%.", "%%%%.")
 local arch ="%{_arch}"
-local  debug = true;
+local  debug = false;
 
 local jvms = { }
 
@@ -984,6 +1008,12 @@ for i,p in pairs(foundJvms) do
     if (debug) then
       print("matched:  "..p)
     end;
+    if (currentjvm ==  p) then
+      if (debug) then
+        print("this jdk is already installed. exiting lua script")
+      end;
+      return
+    end ;
     table.insert(jvms, p)
   else
     if (debug) then
@@ -1538,8 +1568,39 @@ exit 0
 %{_jvmdir}/%{jredir}/lib/ext/java-atk-wrapper.jar
 %{_jvmdir}/%{jredir}/lib/accessibility.properties
 
-
 %changelog
+* Fri May 30 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.22.f21
+- Updated aarch64 tarball
+
+* Fri May 23 2014 Omair Majid <omajid@redhat.com> - 1.7.0.51-2.5.0.21.f21
+- Added aarch64-specfic version of the add-final-location-rpaths path
+
+* Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
+- python added to line SOURCE14 $files, to prevent access denied
+- debug turned off
+- added build requires for python
+- adde patch413, rh1064383-prelink_fix.patch (gnu_andrew)
+- export JDK_TO_BUILD_WITH changed to /usr/lib/jvm/java-1.7.0-openjdk, to use jdk7
+  explicitly
+
+* Thu May 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.19.f21
+- bumped release
+- changed  buildoutputdir to contains "-debug" in case of debug on
+- rewritten (long unmaintained) java-1.7.0-openjdk-debugdocs.patch and 
+  java-1.7.0-openjdk-debuginfo.patch
+- debug turned on (1)
+- added   JAVAC_WARNINGS_FATAl="false"  tomakefile options
+
+* Thu Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.18.pre04.f21
+- Added Omair's fix for RH1059925
+ - added and used Source14, remove-origin-from-rpaths
+ - added and applied patch412 add-final-location-rpaths.patch
+ - added build requires chrpath
+ - adde INSTALL_LOCATION=_jvmdir/sdkdir to make swithces
+- added export CFLAGS="$CFLAGS -fstack-protector-strong", fwd from f20
+- disabled debug for lua script
+- fwd from f20 fix to lua script (do not copy to itself)
+
 * Tue Apr 22 2014 Jiri Vanek <jvanek@redhat.com> - 1.7.0.51-2.5.0.17.pre04.f21
 - Updated to pre04
 - adapted patch100, rhino.patch
